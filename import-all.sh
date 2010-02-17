@@ -6,5 +6,5 @@ PREFIX=contributions/modules
 DESTINATION=contributions
 
 ls -d $REPOSITORY/$PREFIX/* | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "php5 import-project.php ./cvs2git.options $REPOSITORY $PREFIX/% $DESTINATION/%.git | tee %.log"
-mkdir difflog
-ls -d $DESTINATION/* | xargs -I% basename % | xargs --max-proc $CONCURRENCY -I% sh -c "php5 test-project.php $REPOSITORY $PREFIX/% $DESTINATION/%.git | tee difflog/%.log"
+mkdir -p difflog
+ls -d $DESTINATION/* | sed 's/.git$//' | xargs -I% basename % | xargs --max-proc $CONCURRENCY -I% sh -c "php5 test-project.php $REPOSITORY $PREFIX/% $DESTINATION/%.git | tee difflog/%.log"
