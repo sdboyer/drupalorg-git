@@ -22,7 +22,7 @@ foreach ($branches as $branch) {
   $cvsbranch = $branch == 'master' ? 'HEAD' : $branch;
   system("cvs -Q -d" . escapeshellarg($base_dir) . " co -d " . escapeshellarg("$temp_dir/cvs/$branch") . ' -r ' . escapeshellarg($cvsbranch) . ' ' . escapeshellarg($module_dir));
 
-  system('git archive --format tar --prefix ' . escapeshellarg("$temp_dir/git/$branch/") . '--format tar ' . escapeshellarg($branch) . ' | tar x -P');
+  system('git archive --format tar --prefix ' . escapeshellarg("$temp_dir/git/$branch/") . ' --format tar ' . escapeshellarg($branch) . ' | tar x -P');
   $ret = 0;
   exec('diff -u -x CVS -I \$Id -r ' . escapeshellarg("$temp_dir/git/$branch") . ' ' . escapeshellarg("$temp_dir/cvs/$branch"), $output, $ret);
   if (!empty($ret)) {
