@@ -6,7 +6,7 @@ $destination_dir = realpath($argv[3]);
 
 // Get a list of all relevant branches to be tested
 $branches = array();
-exec("ls " . escapeshellarg("$destination_dir/.git/refs/heads/") . " | egrep '^(DRUPAL|master)'", $branches);
+exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL|master)'", $branches);
 
 if (empty($branches)) {
   exit();
@@ -24,7 +24,7 @@ foreach ($branches as $branch) {
 
   system('git archive --format tar --prefix ' . escapeshellarg("$temp_dir/git/$branch/") . '--format tar ' . escapeshellarg($branch) . ' | tar x -P');
   $ret = 0;
-  system('diff -u -x CVS -I \$Id -r ' . escapeshellarg("$temp_dir/git/$branch") . ' ' . escapeshellarg("$temp_dir/cvs/$branch"), $ret);
+  exec('diff -u -x CVS -I \$Id -r ' . escapeshellarg("$temp_dir/git/$branch") . ' ' . escapeshellarg("$temp_dir/cvs/$branch"), $output, $ret);
   if (!empty($ret)) {
     _log('****Git branch %branch is inconsistent with corresponding CVS branch.', array('%branch' => $branch));
   }
