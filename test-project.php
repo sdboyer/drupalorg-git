@@ -12,10 +12,7 @@ if (empty($branches)) {
   exit();
 }
 
-putenv('GIT_WORK_TREE=' . $destination_dir);
-putenv('GIT_DIR=' . $destination_dir . '/.git');
-// cvs2git often creates empty (dirty) working copies; ensure this is not the case
-system('git reset -q --hard');
+putenv('GIT_DIR=' . $destination_dir);
 
 // Create a temporary directory, and register a clean up.
 $temp_dir = realpath(trim(`mktemp -d difftest-cvsgit.XXXXXXXXXX`));
@@ -23,22 +20,15 @@ register_shutdown_function('_clean_up', $temp_dir);
 
 foreach ($branches as $branch) {
   $cvsbranch = $branch == 'master' ? 'HEAD' : $branch;
-  $cmd =  "cvs -Q -d" . escapeshellarg($base_dir) . " co -d " . escapeshellarg("$temp_dir/$branch") . ' ';
-  $cmd .= '-r ' . escapeshellarg($cvsbranch) . ' ';
-  $cmd .= escapeshellarg($module_dir);
-  system($cmd);
+  system("cvs -Q -d" . escapeshellarg($base_dir) . " co -d " . escapeshellarg("$temp_dir/cvs/$branch") . ' -r ' . escapeshellarg($cvsbranch) . ' ' . escapeshellarg($module_dir));
 
-  exec("git checkout -q $branch");
+  system('git archive --format tar --prefix ' . escapeshellarg("$temp_dir/git/$branch/") . '--format tar ' . escapeshellarg($branch) . ' | tar x -P');
   $ret = 0;
-  system('diff -u -x .git -x CVS -I \$Id -r ' . escapeshellarg($destination_dir) . ' ' . escapeshellarg("$temp_dir/$branch"), $ret);
+  system('diff -u -x CVS -I \$Id -r ' . escapeshellarg("$temp_dir/git/$branch") . ' ' . escapeshellarg("$temp_dir/cvs/$branch"), $ret);
   if (!empty($ret)) {
     _log('****Git branch %branch is inconsistent with corresponding CVS branch.', array('%branch' => $branch));
   }
 }
-
-// Switch working copy back to master branch
-system("git checkout -q master");
-
 
 // ------- Utility functions -----------------------------------------------
 
