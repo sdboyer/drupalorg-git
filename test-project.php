@@ -27,6 +27,7 @@ foreach ($branches as $branch) {
   exec('diff -u -x CVS -I \$Id -r ' . escapeshellarg("$temp_dir/git/$branch") . ' ' . escapeshellarg("$temp_dir/cvs/$branch"), $output, $ret);
   if (!empty($ret)) {
     _log('****Git branch %branch is inconsistent with corresponding CVS branch.', array('%branch' => $branch));
+    _log(implode("\n", $output));
   }
 }
 
