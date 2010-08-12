@@ -15,11 +15,9 @@ mkdir -p $DESTINATION/projects $DESTINATION/tmp
 for TYPE in modules themes theme-engines profiles; do
     mkdir -p $LOG_PATH/$TYPE $DIFFLOG_PATH/$TYPE
     PREFIX="contributions/$TYPE"
-    ls -d $REPOSITORY/$PREFIX/* | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP import-project.php ./cvs2git.options $REPOSITORY $PREFIX/% $DESTINATION/tmp/%.git | tee $LOG_PATH/$TYPE/%.log"
+    ls -d $REPOSITORY/$PREFIX/* | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP import-project.php ./cvs2git.options $REPOSITORY $PREFIX/% $DESTINATION/projects/%.git | tee $LOG_PATH/$TYPE/%.log"
     # Run tests across all the projects we just imported
-    ls -d $DESTINATION/tmp/* | sed 's/.git$//' | xargs -I% basename % | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP test-project.php $REPOSITORY $PREFIX/% $DESTINATION/tmp/%.git | tee $DIFFLOG_PATH/$TYPE/%.log"
-    # move the repos into the top-level namespace, but don't overwrite for now (safety check)
-    mv -n $DESTINATION/tmp/* $DESTINATION/projects/
+    ls -d $REPOSITORY/$PREFIX/* | sed 's/.git$//' | xargs -I% basename % | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP test-project.php $REPOSITORY $PREFIX/% $DESTINATION/projects/%.git | tee $DIFFLOG_PATH/$TYPE/%.log"
 done
 
 # migrate sandboxes into their frozen location
