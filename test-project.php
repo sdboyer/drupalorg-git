@@ -15,7 +15,7 @@ if (empty($branches)) {
 putenv('GIT_DIR=' . $destination_dir);
 
 // Create a temporary directory, and register a clean up.
-$temp_dir = realpath(trim(`mktemp -d difftest-cvsgit.XXXXXXXXXX`));
+$temp_dir = realpath(trim(`mktemp -d`));
 register_shutdown_function('_clean_up', $temp_dir);
 
 foreach ($branches as $branch) {
