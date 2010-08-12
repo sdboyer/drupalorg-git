@@ -22,6 +22,9 @@ for TYPE in modules themes theme-engines profiles; do
     mv -n $DESTINATION/tmp/* $DESTINATION/projects/
 done
 
+# migrate sandboxes into their frozen location
+#ls -d $REPOSITORY/contributions/sandbox/* | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP import-project.php ./cvs2git.options $REPOSITORY contributions/sandbox/% $DESTINATION/sandboxes/%/cvs-imported.git | tee $LOG_PATH/sandboxes/%.log"
+
 # Remove empty diff logs because they're just clutter.
 find $DIFFLOG_PATH -size 0 -exec rm {} \;
 
