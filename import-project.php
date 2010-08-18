@@ -37,7 +37,7 @@ passthru('cvs2git --options=./cvs2git.options');
 git_log("Importing '$project' project data into Git.");
 putenv('GIT_DIR=' . $destination_dir);
 git_invoke('git init', FALSE, $destination_dir);
-git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import', FALSE, $destination_dir);
+git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination_dir);
 
 // Branch/tag renaming functions ------------------------
 
