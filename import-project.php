@@ -61,6 +61,6 @@ function convert_contrib_project_tags($project, $destination_dir) {
 // ------- Utility functions -----------------------------------------------
 
 function _clean_up_import($dir) {
-  git_log("Cleaning up import temp directory %dir.", array('%dir' => $dir));
+  git_log("Cleaning up import temp directory $dir.");
   passthru('rm -Rf ' . escapeshellarg($dir));
 }
