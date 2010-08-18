@@ -59,6 +59,10 @@ function convert_contrib_project_branches($project, $destination_dir) {
   // Generate a list of all valid branch names, ignoring master
   // exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)' | sed 's/DRUPAL-//'", $branches);
   exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)'", $branches);
+  if (empty($branches)) {
+    // No branches to work with, bail out
+    return;
+  }
   $trans_map = array(
     // First, strip out the DRUPAL- prefix (yaaaay!)
     '/^DRUPAL-/' => '',
