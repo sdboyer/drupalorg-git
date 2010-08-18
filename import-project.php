@@ -7,7 +7,8 @@ require_once './shared.php';
 $config_template = realpath($argv[1]);
 $repository_root = realpath($argv[2]);
 $source_dir = $argv[3];
-$project = array_pop(explode($source_dir));
+$elements = explode('/', $source_dir);
+$project = array_pop($elements);
 $destination_dir = $argv[4];
 
 // Create the destination directory, if it doesn't exist.

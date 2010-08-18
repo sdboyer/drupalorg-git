@@ -1,5 +1,7 @@
 <?php
 
+define('DEBUG', FALSE);
+
 function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $env = NULL) {
   if (!isset($env)) {
     $env = $_ENV;
