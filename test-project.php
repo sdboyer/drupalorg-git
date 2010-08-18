@@ -1,5 +1,6 @@
 #!/usr/bin/php
 <?php
+
 $base_dir = realpath($argv[1]);
 $module_dir = $argv[2];
 $destination_dir = realpath($argv[3]);
@@ -15,8 +16,9 @@ if (empty($branches)) {
 putenv('GIT_DIR=' . $destination_dir);
 
 // Create a temporary directory, and register a clean up.
-$temp_dir = realpath(trim(`mktemp -d`));
-register_shutdown_function('_clean_up', $temp_dir);
+$cmd = 'mktemp -dt cvs2git-test-' . escapeshellarg($module_dir) . '.XXXXXXXXXX';
+$temp_dir = realpath(trim(`$cmd`));
+register_shutdown_function('_clean_up_test', $temp_dir);
 
 foreach ($branches as $branch) {
   $cvsbranch = $branch == 'master' ? 'HEAD' : $branch;
@@ -38,7 +40,7 @@ function _log($message, $variables = array()) {
   echo strtr($message, $variables) . "\n";
 }
 
-function _clean_up($dir) {
-  //_log("Cleaning up directory %dir.", array('%dir' => $dir));
+function _clean_up_test($dir) {
+  _log("Cleaning up import test directory %dir.", array('%dir' => $dir));
   passthru('rm -Rf ' . escapeshellarg($dir));
 }
