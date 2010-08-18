@@ -35,24 +35,56 @@ passthru('cvs2git --options=./cvs2git.options');
 
 // Load the data into git.
 git_log("Importing '$project' project data into Git.");
-putenv('GIT_DIR=' . $destination_dir);
 git_invoke('git init', FALSE, $destination_dir);
 git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination_dir);
 
-// Branch/tag renaming functions ------------------------
+// Trigger branch/tag renaming for core
+if ($project == 'drupal' && empty($elements)) {
+
+}
+// Trigger contrib branch/tag renaming, but not for sandboxes
+else if ($elements[0] == 'contributions' && $elements[1] != 'sandbox') {
+  convert_contrib_project_branches($project, $destination_dir);
+}
+
+/*
+ * Branch/tag renaming functions ------------------------
+ */
 
 /**
  * Convert all of a contrib project's branches to the new naming convention.
  */
 function convert_contrib_project_branches($project, $destination_dir) {
   $branches = array();
-  exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL|master)'", $branches);
-  foreach ($branches as $branch) {
-    // @todo do the string transform, then rename the branch
+  // Generate a list of all valid branch names, ignoring master
+  // exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)' | sed 's/DRUPAL-//'", $branches);
+  exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)'", $branches);
+  $trans_map = array(
+    // First, strip out the DRUPAL- prefix (yaaaay!)
+    '/^DRUPAL-/' => '',
+    // Next, ensure that any "pseudo" branch names are made to follow the official pattern
+    '/^(\d(-\d)?)$/' => '\1--1',
+    // With the prep done, now do the full transform. One version for 4-7 and prior...
+    '/^(\d)-(\d)--(\d+)$/' => '\1.\2.x-\3.x',
+    // And another for D5 and later
+    '/^(\d)--(\d+)$/' => '\1.x-\2.x',
+  );
+  $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
+  foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
+    // Now do the rename itself
+    git_invoke("git branch -M $old_name $new_name", FALSE, $destination_dir);
   }
 }
 
 function convert_contrib_project_tags($project, $destination_dir) {
+
+}
+
+function convert_core_branches($destination_dir) {
+
+}
+
+function convert_core_tags($destination_dir) {
 
 }
 
