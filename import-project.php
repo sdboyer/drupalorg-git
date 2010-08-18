@@ -39,7 +39,7 @@ git_invoke('git init', FALSE, $destination_dir);
 git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination_dir);
 
 // Trigger branch/tag renaming for core
-if ($project == 'drupal' && empty($elements)) {
+if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) {
   convert_core_branches($destination_dir);
 }
 // Trigger contrib branch/tag renaming, but not for sandboxes
