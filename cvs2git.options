@@ -120,9 +120,9 @@ from cvs2svn_lib.property_setters import SVNBinaryFileKeywordsPropertySetter
 
 # To choose the level of logging output, uncomment one of the
 # following lines:
-#Log().log_level = Log.WARN
+Log().log_level = Log.WARN
 #Log().log_level = Log.QUIET
-Log().log_level = Log.NORMAL
+#Log().log_level = Log.NORMAL
 #Log().log_level = Log.VERBOSE
 #Log().log_level = Log.DEBUG
 
