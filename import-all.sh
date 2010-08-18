@@ -10,7 +10,7 @@ PHP="/usr/bin/php"
 # Remove empty repos. They're pointless in git, and the import barfs when we point at an empty directory.
 # find . -maxdepth 1 -type d -empty -exec rm -r {} \;
 
-mkdir -p $DESTINATION/projects $DESTINATION/tmp
+mkdir -p $DESTINATION/projects
 # migrate all the parent dirs for which each child receives a repo in the shared, top-level namespace (projects)
 for TYPE in modules themes theme-engines profiles; do
     mkdir -p $LOG_PATH/$TYPE $DIFFLOG_PATH/$TYPE
