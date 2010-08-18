@@ -40,11 +40,11 @@ git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-imp
 
 // Trigger branch/tag renaming for core
 if ($project == 'drupal' && empty($elements)) {
-
+  convert_core_branches($destination_dir);
 }
 // Trigger contrib branch/tag renaming, but not for sandboxes
 else if ($elements[0] == 'contributions' && $elements[1] != 'sandbox') {
-  convert_contrib_project_branches($project, $destination_dir);
+  convert_contrib_project_branches($destination_dir);
 }
 
 /*
@@ -54,7 +54,7 @@ else if ($elements[0] == 'contributions' && $elements[1] != 'sandbox') {
 /**
  * Convert all of a contrib project's branches to the new naming convention.
  */
-function convert_contrib_project_branches($project, $destination_dir) {
+function convert_contrib_project_branches($destination_dir) {
   $branches = array();
   // Generate a list of all valid branch names, ignoring master
   // exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)' | sed 's/DRUPAL-//'", $branches);
@@ -75,7 +75,7 @@ function convert_contrib_project_branches($project, $destination_dir) {
   );
   $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
   foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
-    // Now do the rename itself
+    // Now do the rename itself. -M forces overwriting of branches.
     git_invoke("git branch -M $old_name $new_name", FALSE, $destination_dir);
   }
 }
@@ -85,14 +85,28 @@ function convert_contrib_project_tags($project, $destination_dir) {
 }
 
 function convert_core_branches($destination_dir) {
-
+  $branches = array();
+  // Generate a list of all valid branch names, ignoring master
+  // exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)' | sed 's/DRUPAL-//'", $branches);
+  exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)'", $branches);
+  $trans_map = array(
+    // First, strip out the DRUPAL- prefix (yaaaay!)
+    '/^DRUPAL-/' => '',
+    // Then do the full transform. One version for 4-7 and prior...
+    '/^(\d)-(\d)$/' => '\1.\2.x',
+    // And another for D5 and later
+    '/^(\d)$/' => '\1.x',
+  );
+  $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
+  foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
+    // Now do the rename itself. -M forces overwriting of branches.
+    git_invoke("git branch -M $old_name $new_name", FALSE, $destination_dir);
+  }
 }
 
 function convert_core_tags($destination_dir) {
 
 }
-
-
 
 // ------- Utility functions -----------------------------------------------
 
