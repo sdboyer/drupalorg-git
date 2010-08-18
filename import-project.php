@@ -43,7 +43,7 @@ if ($project == 'drupal' && empty($elements)) {
   convert_core_branches($destination_dir);
 }
 // Trigger contrib branch/tag renaming, but not for sandboxes
-else if ($elements[0] == 'contributions' && $elements[1] != 'sandbox') {
+else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
   convert_contrib_project_branches($destination_dir);
 }
 
