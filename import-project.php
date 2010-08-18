@@ -40,29 +40,18 @@ git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-imp
 
 // Trigger branch/tag renaming for core
 if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) {
-  convert_core_branches($destination_dir);
+  $trans_map = array(
+    // First, strip out the DRUPAL- prefix (yaaaay!)
+    '/^DRUPAL-/' => '',
+    // Then do the full transform. One version for 4-7 and prior...
+    '/^(\d)-(\d)$/' => '\1.\2.x',
+    // And another for D5 and later
+    '/^(\d)$/' => '\1.x',
+  );
+  convert_project_branches($destination_dir, $trans_map);
 }
 // Trigger contrib branch/tag renaming, but not for sandboxes
 else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
-  convert_contrib_project_branches($destination_dir);
-}
-
-/*
- * Branch/tag renaming functions ------------------------
- */
-
-/**
- * Convert all of a contrib project's branches to the new naming convention.
- */
-function convert_contrib_project_branches($destination_dir) {
-  $branches = array();
-  // Generate a list of all valid branch names, ignoring master
-  // exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)' | sed 's/DRUPAL-//'", $branches);
-  exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)'", $branches);
-  if (empty($branches)) {
-    // No branches to work with, bail out
-    return;
-  }
   $trans_map = array(
     // First, strip out the DRUPAL- prefix (yaaaay!)
     '/^DRUPAL-/' => '',
@@ -73,6 +62,24 @@ function convert_contrib_project_branches($destination_dir) {
     // And another for D5 and later
     '/^(\d)--(\d+)$/' => '\1.x-\2.x',
   );
+  convert_project_branches($destination_dir, $trans_map);
+}
+
+/*
+ * Branch/tag renaming functions ------------------------
+ */
+
+/**
+ * Convert all of a contrib project's branches to the new naming convention.
+ */
+function convert_project_branches($destination_dir, $trans_map) {
+  $branches = array();
+  // Generate a list of all valid branch names, ignoring master
+  exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^DRUPAL-'", $branches);
+  if (empty($branches)) {
+    // No branches to work with, bail out
+    return;
+  }
   $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
   foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
     // Now do the rename itself. -M forces overwriting of branches.
@@ -82,26 +89,6 @@ function convert_contrib_project_branches($destination_dir) {
 
 function convert_contrib_project_tags($project, $destination_dir) {
 
-}
-
-function convert_core_branches($destination_dir) {
-  $branches = array();
-  // Generate a list of all valid branch names, ignoring master
-  // exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)' | sed 's/DRUPAL-//'", $branches);
-  exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^(DRUPAL-)'", $branches);
-  $trans_map = array(
-    // First, strip out the DRUPAL- prefix (yaaaay!)
-    '/^DRUPAL-/' => '',
-    // Then do the full transform. One version for 4-7 and prior...
-    '/^(\d)-(\d)$/' => '\1.\2.x',
-    // And another for D5 and later
-    '/^(\d)$/' => '\1.x',
-  );
-  $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
-  foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
-    // Now do the rename itself. -M forces overwriting of branches.
-    git_invoke("git branch -M $old_name $new_name", FALSE, $destination_dir);
-  }
 }
 
 function convert_core_tags($destination_dir) {
