@@ -1,6 +1,6 @@
 <?php
 
-if (!defined(LOGLEVEL)) {
+if (!defined('LOGLEVEL')) {
   // Let an environment variable set the log level
   if (isset($_ENV['LOGLEVEL']) && is_int($_ENV['LOGLEVEL'])) {
     define('LOGLEVEL', $_ENV['LOGLEVEL']);
