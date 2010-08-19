@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CONCURRENCY=3 # set to the number of cores you want to pwn with the migration process
+CONCURRENCY=8 # set to the number of cores you want to pwn with the migration process
 REPOSITORY=/cvs/drupal # replace with path to the root of the local repository
 DESTINATION=/var/git/repositories
 PHP="/usr/bin/php"
