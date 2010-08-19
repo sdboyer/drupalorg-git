@@ -12,8 +12,6 @@ if (!defined('LOGLEVEL')) {
   }
 }
 
-date_default_timezone_set('America/New_York');
-
 function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $env = NULL) {
   if (!isset($env)) {
     $env = $_ENV;
