@@ -59,8 +59,6 @@ git_log("Performing branch/tag renaming on '$project' project.", 'INFO');
 // For core
 if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) { // for core
   $trans_map = array(
-    // First, strip out the DRUPAL- prefix (yaaaay!)
-    '/^DRUPAL-/' => '',
     // Then do the full transform. One version for 4-7 and prior...
     '/^(\d)-(\d)$/' => '\1.\2.x',
     // And another for D5 and later
@@ -71,8 +69,6 @@ if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) 
 // For contrib minus sandboxes
 else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
   $trans_map = array(
-    // First, strip out the DRUPAL- prefix (yaaaay!)
-    '/^DRUPAL-/' => '',
     // Next, ensure that any "pseudo" branch names are made to follow the official pattern
     '/^(\d(-\d)?)$/' => '\1--1',
     // With the prep done, now do the full transform. One version for 4-7 and prior...
@@ -98,6 +94,8 @@ function convert_project_branches($destination_dir, $trans_map) {
     // No branches to work with, bail out
     return;
   }
+  // Everything needs the initial DRUPAL- stripped out.
+  $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
   $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
   foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
     try {
