@@ -5,9 +5,6 @@ REPOSITORY=/cvs/drupal # replace with path to the root of the local repository
 DESTINATION=/var/git/repositories
 PHP="/usr/bin/php"
 
-# Remove empty repos. They're pointless in git, and the import barfs when we point at an empty directory.
-# find . -maxdepth 1 -type d -empty -exec rm -r {} \;
-
 mkdir -p $DESTINATION/projects
 # migrate all the parent dirs for which each child receives a repo in the shared, top-level namespace (projects)
 for TYPE in modules themes theme-engines profiles; do
