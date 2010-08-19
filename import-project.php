@@ -2,7 +2,7 @@
 <?php
 
 // Load shared functions.
-require_once './shared.php';
+require_once dirname(__FILE__) . '/shared.php';
 
 $config_template = realpath($argv[1]);
 $repository_root = realpath($argv[2]);
@@ -36,21 +36,29 @@ $options = array(
 file_put_contents('./cvs2git.options', strtr(file_get_contents($config_template), $options));
 
 // Start the import process.
-git_log("Starting the import process on the '$project' project.");
+git_log("Starting the import process on the '$project' project.", 'INFO');
 passthru('cvs2git --options=./cvs2git.options');
 
-// If the target destination dir exists already, remove it.
+// If the target destination dir exists already, remove it. We do this after the
+// cvs2git process so that the target repo disappears for as little time as possible.
 if (file_exists($destination_dir) && is_dir($destination_dir)) {
   rmdirr($destination_dir);
 }
 
 // Load the data into git.
-git_log("Importing '$project' project data into Git.");
+git_log("Importing '$project' project data into Git.", 'INFO');
 git_invoke('git init', FALSE, $destination_dir);
-git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination_dir);
+try {
+  git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination_dir);
+}
+catch (Exception $e) {
+  git_log("Fast-import failed on project '$project' with error '$e'", 'WARN');
+}
 
-// Trigger branch/tag renaming for core
-if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) {
+// Do branch/tag renaming
+git_log("Performing branch/tag renaming on '$project' project.", 'INFO');
+// For core
+if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) { // for core
   $trans_map = array(
     // First, strip out the DRUPAL- prefix (yaaaay!)
     '/^DRUPAL-/' => '',
@@ -61,7 +69,7 @@ if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) 
   );
   convert_project_branches($destination_dir, $trans_map);
 }
-// Trigger contrib branch/tag renaming, but not for sandboxes
+// For contrib minus sandboxes
 else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
   $trans_map = array(
     // First, strip out the DRUPAL- prefix (yaaaay!)
@@ -93,8 +101,14 @@ function convert_project_branches($destination_dir, $trans_map) {
   }
   $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
   foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
+    try {
     // Now do the rename itself. -M forces overwriting of branches.
-    git_invoke("git branch -M $old_name $new_name", FALSE, $destination_dir);
+      git_invoke("git branch -M $old_name $new_name", FALSE, $destination_dir);
+    }
+    catch (Exception $e) {
+      // These are failing sometimes, not sure why
+      git_log("Branch rename failed on project/branch '$project'/'$old_name' with error '$e'", 'WARN');
+    }
   }
 }
 
@@ -109,6 +123,6 @@ function convert_core_tags($destination_dir) {
 // ------- Utility functions -----------------------------------------------
 
 function _clean_up_import($dir) {
-  git_log("Cleaning up import temp directory $dir.");
+  git_log("Cleaning up import temp directory $dir.", 'INFO');
   passthru('rm -Rf ' . escapeshellarg($dir));
 }
