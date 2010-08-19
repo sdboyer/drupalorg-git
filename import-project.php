@@ -11,6 +11,12 @@ $elements = explode('/', $source_dir);
 $project = array_pop($elements);
 $destination_dir = $argv[4];
 
+// If the source_dir is an empty directory, skip it; cvs2git barfs on these.
+if (is_empty_dir($source_dir)) {
+  git_log("Skipping empty source directory '$source_dir'.");
+  exit;
+}
+
 // Create the destination directory, if it doesn't exist.
 @mkdir($destination_dir);
 $destination_dir = realpath($destination_dir);
@@ -32,6 +38,11 @@ file_put_contents('./cvs2git.options', strtr(file_get_contents($config_template)
 // Start the import process.
 git_log("Starting the import process on the '$project' project.");
 passthru('cvs2git --options=./cvs2git.options');
+
+// If the target destination dir exists already, remove it.
+if (file_exists($destination_dir) && is_dir($destination_dir)) {
+  rmdirr($destination_dir);
+}
 
 // Load the data into git.
 git_log("Importing '$project' project data into Git.");
