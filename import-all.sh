@@ -16,8 +16,6 @@ for TYPE in modules themes theme-engines profiles; do
     mkdir -p $LOG_PATH/$TYPE $DIFFLOG_PATH/$TYPE
     PREFIX="contributions/$TYPE"
     find $REPOSITORY/$PREFIX/ -mindepth 1 -maxdepth 1 -type d | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP import-project.php ./cvs2git.options $REPOSITORY $PREFIX/% $DESTINATION/projects/%.git | tee $LOG_PATH/$TYPE/%.log"
-    # Run tests across all the projects we just imported
-    # ls -d $REPOSITORY/$PREFIX/* | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP test-project.php $REPOSITORY $PREFIX/% $DESTINATION/projects/%.git | tee $DIFFLOG_PATH/$TYPE/%.log"
 done
 
 # migrate sandboxes into their frozen location
@@ -28,7 +26,4 @@ find $REPOSITORY/contributions/sandbox/ -mindepth 1 -maxdepth 1 -type d | xargs 
 $PHP import-project.php ./cvs2git.options $REPOSITORY contributions/docs $DESTINATION/projects/docs.git | tee $LOG_PATH/docs.log
 $PHP import-project.php ./cvs2git.options $REPOSITORY contributions/tricks $DESTINATION/projects/tricks.git | tee $LOG_PATH/tricks.log
 $PHP import-project.php ./cvs2git.options $REPOSITORY drupal $DESTINATION/projects/drupal.git | tee $LOG_PATH/core.log
-
-# Remove empty diff logs because they're just clutter.
-# find $DIFFLOG_PATH -size 0 -exec rm {} \;
 
