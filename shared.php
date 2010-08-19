@@ -2,8 +2,9 @@
 
 if (!defined('LOGLEVEL')) {
   // Let an environment variable set the log level
-  if (isset($_ENV['LOGLEVEL']) && is_int($_ENV['LOGLEVEL'])) {
-    define('LOGLEVEL', (int) $_ENV['LOGLEVEL']);
+  $level = getenv('LOGLEVEL');
+  if (is_string($level)) {
+    define('LOGLEVEL', (int) $level);
   }
   else {
     // Or default to 'normal'
