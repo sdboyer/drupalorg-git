@@ -17,8 +17,13 @@ if (is_empty_dir($source_dir)) {
   exit;
 }
 
-// Create the destination directory, if it doesn't exist.
-@mkdir($destination_dir);
+// If the target destination dir exists already, remove it.
+if (file_exists($destination_dir) && is_dir($destination_dir)) {
+  rmdirr($destination_dir);
+}
+
+// Create the destination directory.
+mkdir($destination_dir);
 $destination_dir = realpath($destination_dir);
 
 // Create a temporary directory, and register a clean up.
@@ -38,12 +43,6 @@ file_put_contents('./cvs2git.options', strtr(file_get_contents($config_template)
 // Start the import process.
 git_log("Starting the import process on the '$project' project.", 'INFO');
 passthru('cvs2git --options=./cvs2git.options');
-
-// If the target destination dir exists already, remove it. We do this after the
-// cvs2git process so that the target repo disappears for as little time as possible.
-if (file_exists($destination_dir) && is_dir($destination_dir)) {
-  rmdirr($destination_dir);
-}
 
 // Load the data into git.
 git_log("Importing '$project' project data into Git.", 'INFO');

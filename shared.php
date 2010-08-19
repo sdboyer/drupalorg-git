@@ -3,13 +3,15 @@
 if (!defined('LOGLEVEL')) {
   // Let an environment variable set the log level
   if (isset($_ENV['LOGLEVEL']) && is_int($_ENV['LOGLEVEL'])) {
-    define('LOGLEVEL', $_ENV['LOGLEVEL']);
+    define('LOGLEVEL', (int) $_ENV['LOGLEVEL']);
   }
   else {
     // Or default to 'normal'
     define('LOGLEVEL', 3);
   }
 }
+
+date_default_timezone_set('America/New_York');
 
 function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $env = NULL) {
   if (!isset($env)) {
@@ -48,7 +50,7 @@ function is_empty_dir($dir){
 }
 
 /**
- * Delete a directory on a local filesystem, and all its contents.
+ * Recursively delete a directory on a local filesystem.
  *
  * @param string $path
  *   The path to the directory.
@@ -68,7 +70,7 @@ function git_log($message, $level = 'NORMAL') {
     'INFO' => 4,
     'DEBUG' => 5,
   );
-  if (LOGLEVEL != 0 && LOGLEVEL >= $loglevels[$level]) {
+  if (LOGLEVEL !== 0 && LOGLEVEL >= $loglevels[$level]) {
     echo '[' . date('Y-m-d H:i:s') . '] [' . $level . '] ' . $message . "\n";
   }
 }
