@@ -85,7 +85,7 @@ else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] 
     // 5 and later base transform
     '/^(\d)--(\d+)-(\d+)/' => '\1.x-\2.\3',
   );
-  convert_project_tags($source_dir, $destination_dir, '/^DRUPAL-\d(-\d)?--\d+-\d+(-(ALPHA|BETA|RC)(\d+)?)?$/', $trans_map);
+  convert_project_tags($source_dir, $destination_dir, '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
 }
 
 /*
