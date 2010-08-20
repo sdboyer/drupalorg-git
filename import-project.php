@@ -64,7 +64,7 @@ if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) 
     // And another for D5 and later
     '/^(\d)$/' => '\1.x',
   );
-  convert_project_branches($destination_dir, $trans_map);
+  convert_project_branches($project, $destination_dir, $trans_map);
 }
 // For contrib minus sandboxes
 else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
@@ -76,7 +76,7 @@ else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] 
     // And another for D5 and later
     '/^(\d)--(\d+)$/' => '\1.x-\2.x',
   );
-  convert_project_branches($destination_dir, $trans_map);
+  convert_project_branches($project, $destination_dir, $trans_map);
 }
 
 /*
@@ -86,7 +86,7 @@ else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] 
 /**
  * Convert all of a contrib project's branches to the new naming convention.
  */
-function convert_project_branches($destination_dir, $trans_map) {
+function convert_project_branches($project, $destination_dir, $trans_map) {
   $branches = array();
   // Generate a list of all valid branch names, ignoring master
   exec("ls " . escapeshellarg("$destination_dir/refs/heads/") . " | egrep '^DRUPAL-'", $branches);
