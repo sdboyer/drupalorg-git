@@ -136,7 +136,7 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
     return;
   }
 
-  if ($nonconforming_branches = array_diff($all_branches, $branches)) {
+  if ($nonconforming_branches = array_diff($all_branches, $branches, array('master'))) { // Ignore master
     git_log("Project has the following nonconforming branches: " . implode(', ', $nonconforming_branches), 'NORMAL', $project);
   }
 
