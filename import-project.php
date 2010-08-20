@@ -125,7 +125,7 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
   $branches = preg_grep('/^DRUPAL-/', $all_branches); // @todo be stricter?
   if (empty($branches)) {
     // No branches to work with, bail out.
-    if (array_search('master', $all_branches)) {
+    if (array_search('master', $all_branches) === FALSE) {
       // Project has only a master branch
       git_log("Project has no conforming branches.", 'INFO', $project);
     }
