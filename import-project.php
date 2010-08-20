@@ -130,8 +130,8 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
       git_log("Project has no conforming branches.", 'INFO', $project);
     }
     else {
-      // No non-labelled branches at all. This shouldn't happen.
-      git_log("Project has no conforming branches and no master.", 'WARN', $project);
+      // No non-labelled branches at all. This shouldn't happen; dump the whole list if it does.
+      git_log("Project has no conforming branches and no master. Full branch list: " . implode(', ', $all_branches), 'WARN', $project);
     }
     return;
   }
