@@ -61,7 +61,7 @@ function rmdirr($path) {
   rmdir($path);
 }
 
-function git_log($message, $level = 'NORMAL') {
+function git_log($message, $level = 'NORMAL', $project = NULL) {
   $loglevels = array(
     'WARN' => 1,
     'QUIET' => 2,
@@ -70,6 +70,11 @@ function git_log($message, $level = 'NORMAL') {
     'DEBUG' => 5,
   );
   if (LOGLEVEL !== 0 && LOGLEVEL >= $loglevels[$level]) {
-    echo '[' . date('Y-m-d H:i:s') . '] [' . $level . '] ' . $message . "\n";
+    if (isset($project)) {
+      echo "[$project] [" . date('Y-m-d H:i:s') . "] [$level] $message\n";
+    }
+    else {
+      echo "[" . date('Y-m-d H:i:s') . "] [$level] $message\n";
+    }
   }
 }
