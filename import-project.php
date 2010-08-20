@@ -77,7 +77,15 @@ else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] 
     // And another for D5 and later
     '/^(\d)--(\d+)$/' => '\1.x-\2.x',
   );
-  convert_project_branches($project, $destination_dir, $trans_map);
+  convert_project_branches($source_dir, $destination_dir, $trans_map);
+  // Now tags.
+  $trans_map = array(
+    // 4-7 and earlier base transform
+    '/^(\d)-(\d)--(\d+)-(\d+)/' => '\1.\2.x-\3.\4',
+    // 5 and later base transform
+    '/^(\d)--(\d+)-(\d+)/' => '\1.x-\2.\3',
+  );
+  convert_project_tags($source_dir, $destination_dir, '/^DRUPAL-\d(-\d)?--\d+-\d+(-(ALPHA|BETA|RC)(\d+)?)?$/', $trans_map);
 }
 
 /*
@@ -106,13 +114,55 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
     }
     catch (Exception $e) {
       // These are failing sometimes, not sure why
-      git_log("Branch rename failed on project/branch '$project'/'$old_name' with error '$e'", 'WARN');
+      git_log("Branch rename failed on branch '$old_name' with error '$e'", 'WARN', $project);
     }
   }
 }
 
-function convert_contrib_project_tags($project, $destination_dir) {
+function convert_project_tags($project, $destination_dir, $match, $trans_map) {
+  $all_tags = $tags = $new_tags = $nonconforming_tags = array();
+  try {
+    $all_tags = git_invoke('git tag -l', FALSE, $destination_dir);
+    $all_tags = explode("\n", $all_tags);
+  }
+  catch (Exception $e) {
+    git_log("Tag list retrieval failed with error '$e'", 'WARN', $project);
+    return;
+  }
 
+  // Convert only tags that match naming conventions
+  $tags = preg_grep($match, $all_tags);
+  if (empty($tags)) {
+    // No conforming tags to work with, bail out.
+    return;
+  }
+  if ($nonconforming_tags = array_diff($all_tags, $tags)) {
+    git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'NORMAL', $project);
+  }
+
+  // Everything needs the initial DRUPAL- stripped out.
+  $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
+  $new_tags = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
+  foreach (array_combine($tags, $new_tags) as $old_tag => $new_tag) {
+    // Lowercase all remaining characters (should be just ALPHA/BETA/RC, etc.)
+    $new_tag = strtolower($new_tag);
+    // Add the new tag.
+    try {
+      git_invoke("git tag $new_tag $old_tag", FALSE, $destination_dir);
+      git_log("Created new tag '$new_tag' from old tag '$old_tag'", 'INFO', $project);
+    }
+    catch (Exception $e) {
+      git_log("Creation of new tag '$new_tag' from old tag '$old_tag' failed with message $e", 'WARN', $project);
+    }
+    // Delete the old tag.
+    try {
+      git_invoke("git tag -d $old_tag", FALSE, $destination_dir);
+      git_log("Deleted old tag '$old_tag'", 'INFO', $project);
+    }
+    catch (Exception $e) {
+      git_log("Deletion of old tag '$old_tag' in project '$project' failed with message $e", 'WARN', $project);
+    }
+  }
 }
 
 function convert_core_tags($destination_dir) {
