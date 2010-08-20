@@ -119,7 +119,7 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
   }
 
   // Remove cvs2git junk branches from the list.
-  $all_branches = array_diff($unlabeleds, $all_branches);
+  $all_branches = array_diff($all_branches, $unlabeleds);
 
   // Generate a list of all valid branch names, ignoring master
   $branches = preg_grep('/^DRUPAL-/', $all_branches); // @todo be stricter?
