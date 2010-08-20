@@ -7,10 +7,10 @@ PHP="/usr/bin/php"
 
 mkdir -p $DESTINATION/projects
 
-# do special-case handling for docs, tricks, and finally core. Do these first because they take a while.
-$PHP import-project.php ./cvs2git.options $REPOSITORY contributions/docs $DESTINATION/projects/docs.git
-$PHP import-project.php ./cvs2git.options $REPOSITORY contributions/tricks $DESTINATION/projects/tricks.git
-$PHP import-project.php ./cvs2git.options $REPOSITORY drupal $DESTINATION/projects/drupal.git
+# do special-case handling for docs, tricks, and finally core. Do these first in the background because they take a while.
+$PHP import-project.php ./cvs2git.options $REPOSITORY contributions/docs $DESTINATION/projects/docs.git &
+$PHP import-project.php ./cvs2git.options $REPOSITORY contributions/tricks $DESTINATION/projects/tricks.git &
+$PHP import-project.php ./cvs2git.options $REPOSITORY drupal $DESTINATION/projects/drupal.git &
 
 # migrate all the parent dirs for which each child receives a repo in the shared, top-level namespace (projects)
 for TYPE in modules themes theme-engines profiles; do
