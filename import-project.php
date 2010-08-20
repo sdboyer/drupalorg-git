@@ -19,7 +19,7 @@ if (is_empty_dir($source_dir)) {
 
 // If the target destination dir exists already, remove it.
 if (file_exists($destination_dir) && is_dir($destination_dir)) {
-  rmdirr($destination_dir);
+  passthru('rm -Rf ' . escapeshellarg($destination_dir));
 }
 
 // Create the destination directory.
