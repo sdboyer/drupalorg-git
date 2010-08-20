@@ -71,7 +71,7 @@ function git_log($message, $level = 'NORMAL', $project = NULL) {
   );
   if (LOGLEVEL !== 0 && LOGLEVEL >= $loglevels[$level]) {
     if (isset($project)) {
-      echo "[" . date('Y-m-d H:i:s') . "] [$project] [$level] $message\n";
+      echo "[" . date('Y-m-d H:i:s') . "] [$level] [$project] $message\n";
     }
     else {
       echo "[" . date('Y-m-d H:i:s') . "] [$level] $message\n";
