@@ -41,37 +41,38 @@ $options = array(
 file_put_contents('./cvs2git.options', strtr(file_get_contents($config_template), $options));
 
 // Start the import process.
-git_log("Starting the import process on the '$project' project.", 'INFO');
+git_log("Generating the fast-import dump files.", 'DEBUG', $source_dir);
 passthru('cvs2git --options=./cvs2git.options');
 
 // Load the data into git.
-git_log("Importing '$project' project data into Git.", 'INFO');
+git_log("Importing project data into Git.", 'DEBUG', $source_dir);
 git_invoke('git init', FALSE, $destination_dir);
 try {
   git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination_dir);
 }
 catch (Exception $e) {
-  git_log("Fast-import failed on project '$project' with error '$e'", 'WARN');
+  git_log("Fast-import failed with error '$e'", 'WARN', $source_dir);
 }
 
 // Do branch/tag renaming
-git_log("Performing branch/tag renaming on '$project' project.", 'INFO');
+git_log("Performing branch/tag renaming.", 'DEBUG', $source_dir);
 // For core
 if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) { // for core
   $trans_map = array(
-    // Then do the full transform. One version for 4-7 and prior...
+    // One version for 4-7 and prior...
     '/^(\d)-(\d)$/' => '\1.\2.x',
     // And another for D5 and later
     '/^(\d)$/' => '\1.x',
   );
-  convert_project_branches($project, $destination_dir, $trans_map);
+  convert_project_branches($source_dir, $destination_dir, $trans_map);
 }
-// For contrib minus sandboxes
+// For contrib, minus sandboxes
 else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
+  // Branches first.
   $trans_map = array(
-    // Next, ensure that any "pseudo" branch names are made to follow the official pattern
+    // Ensure that any "pseudo" branch names are made to follow the official pattern
     '/^(\d(-\d)?)$/' => '\1--1',
-    // With the prep done, now do the full transform. One version for 4-7 and prior...
+    // With pseudonames converted, do full transform. One version for 4-7 and prior...
     '/^(\d)-(\d)--(\d+)$/' => '\1.\2.x-\3.x',
     // And another for D5 and later
     '/^(\d)--(\d+)$/' => '\1.x-\2.x',
@@ -94,6 +95,7 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
     // No branches to work with, bail out
     return;
   }
+
   // Everything needs the initial DRUPAL- stripped out.
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
   $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
@@ -120,6 +122,6 @@ function convert_core_tags($destination_dir) {
 // ------- Utility functions -----------------------------------------------
 
 function _clean_up_import($dir) {
-  git_log("Cleaning up import temp directory $dir.", 'INFO');
+  git_log("Cleaning up import temp directory $dir.", 'DEBUG');
   passthru('rm -Rf ' . escapeshellarg($dir));
 }
