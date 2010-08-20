@@ -482,7 +482,6 @@ ctx.retain_conflicting_attic_files = True
 # Please substitute your own project's usernames here to use with the
 # author_transforms option of GitOutputOption below.
 author_transforms={
-    'sdboyer' : ('Sam Boyer', 'drupal@samboyer.org'),
     'jrandom' : ('J. Random', 'jrandom@example.com'),
     'mhagger' : ('Michael Haggerty', 'mhagger@alum.mit.edu'),
     'brane' : (u'Branko Čibej', 'brane@xbc.nu'),
@@ -491,7 +490,7 @@ author_transforms={
 
     # This one will be used for commits for which CVS doesn't record
     # the original author, as explained above.
-    'cvs2git' : ('cvs2git', 'admin@example.com'),
+    'cvs2git' : ('cvs2git', 'nobody@drupal.org'),
     }
 
 # This is the main option that causes cvs2git to output to a
