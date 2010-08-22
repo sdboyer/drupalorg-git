@@ -178,7 +178,8 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
 
   if (empty($tags)) {
     // No conforming tags to work with, bail out.
-    git_log("Project has no conforming tags.", 'NORMAL', $project);
+    $string = empty($all_tags) ? "Project has no tags at all." : "Project has no conforming tags.";
+    git_log($string, 'NORMAL', $project);
     return;
   }
 
