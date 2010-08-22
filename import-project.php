@@ -23,7 +23,10 @@ if (file_exists($destination_dir) && is_dir($destination_dir)) {
 }
 
 // Create the destination directory.
-mkdir($destination_dir);
+if (!@mkdir($destination_dir)) {
+  git_log("Failed to create output directory at $destination_dir, project import will not procede.", 'WARN', $project);
+  exit;
+}
 $destination_dir = realpath($destination_dir);
 
 // Create a temporary directory, and register a clean up.
