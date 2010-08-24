@@ -68,6 +68,14 @@ if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) 
     '/^(\d)$/' => '\1.x',
   );
   convert_project_branches($source_dir, $destination_dir, $trans_map);
+  // Now tags.
+  $trans_map = array(
+    // 4-7 and earlier base transform
+    '/^(\d)-(\d)-(\d+)/' => '\1.\2.\3',
+    // 5 and later base transform
+    '/^(\d)-(\d+)/' => '\1.\2',
+  );
+  convert_project_tags($source_dir, $destination_dir, '/^DRUPAL-\d(-\d)?-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
 }
 // For contrib, minus sandboxes
 else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
