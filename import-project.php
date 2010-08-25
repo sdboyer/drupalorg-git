@@ -23,7 +23,9 @@ if (file_exists($destination_dir) && is_dir($destination_dir)) {
 }
 
 // Create the destination directory.
-if (!@mkdir($destination_dir)) {
+$ret = 0;
+passthru('mkdir -p ' . escapeshellarg($destination_dir), $ret);
+if (!empty($ret)) {
   git_log("Failed to create output directory at $destination_dir, project import will not procede.", 'WARN', $project);
   exit;
 }
