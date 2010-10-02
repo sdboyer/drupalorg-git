@@ -34,6 +34,8 @@ EXTENSIONS = (
     '.sql',
     '.template',
     '.test',
+    '.theme',
+    '.tpl',
     '.txt',
     '.xml',
     '.xhtml',

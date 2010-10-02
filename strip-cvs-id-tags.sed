@@ -4,9 +4,9 @@
 # sed -Ei '' -f strip-cvs-id-tags.sed strip-cvs-id-tags.test.txt
 
 # Tag on a line by itself, preceeded by one or more spaces/comment characters.
-/^ *[\/\*#;-].*\$[Ii][Dd].*\$/ d
+/^ *[\/\*#;{-].*\$[Ii][Dd].*\$/ d
 # Invalid (unterminated) version of the above.
-/^ *[\/\*#;-].*\$[Ii][Dd]:? *$/ d
+/^ *[\/\*#;{-].*\$[Ii][Dd]:? *$/ d
 
 # Tag on a line by itself, preceeded by nothing or whitespace.
 /^ *\$[Ii][Dd]:.*\$/ d
