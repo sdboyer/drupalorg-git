@@ -47,3 +47,13 @@ $Id$
 ;$Id$
 ;  $Id$
 
+# Id in XML/HTML comment
+<!-- $Id$ -->
+<!-- $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $ -->
+
+# Unterminated tags
+# $Id
+// $Id:
+$Id
+$Id:
+
