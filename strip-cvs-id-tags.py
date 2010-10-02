@@ -5,7 +5,6 @@ Python script to remove CVS tags from a whole tree of files.
 Locates the files and uses Sed to do the hard work.
 """
 
-from glob import iglob as glob
 import os
 import subprocess
 import sys
