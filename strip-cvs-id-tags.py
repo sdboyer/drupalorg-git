@@ -50,7 +50,7 @@ SED_FILE = os.path.join(os.path.dirname(__file__), 'strip-cvs-id-tags.sed')
 def main():
     try:
         # If a dirname is passed as the first parameter, use that.
-        path = sys.argv[1]
+        path = os.path.realpath(sys.argv[1])
     except IndexError:
         # Fall back on the current working directory.
         path = os.getcwd()
