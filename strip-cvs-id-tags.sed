@@ -4,9 +4,12 @@
 # sed -Ei '' -f strip-cvs-id-tags.sed strip-cvs-id-tags.test.txt
 
 # Tag on a line by itself, preceeded by one or more spaces/comment characters.
-/^\s*[\/\*#].*\$[Ii][Dd]/ d
+/^ *[\/\*#;].*\$[Ii][Dd].*\$/ d
 
+# Tag on a line by itself, preceeded by nothing or whitespace.
+/^ *\$[Ii][Dd]:.*\$/ d
+/^ *\$[Ii][Dd]\$/ d
 
 # Tag preceeded by the PHP tag.
-s/^\s*<\?(php)* [\/\*#].*\$[Ii][Dd].*/<?php/g
+s/^ *<\?(php)* [\/\*#].*\$[Ii][Dd].*\$/<?php/g
 
