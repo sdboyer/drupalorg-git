@@ -1,0 +1,34 @@
+# First, the standard version
+// $Id$
+
+# An expanded version of the same
+// $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+
+# A less common variation
+# $Id$
+
+# An expanded version of that.
+# $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+
+# Long quotes
+/** $Id$ **/
+
+# Expanded long quotes
+/* $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $*/
+
+# On the same line as the PHP tag
+<?php // $Id$
+
+# On the same line as the PHP tag, expanded
+<?php // $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+
+# More variations of PHP tags.
+<?php // $id$
+<?php # $iD$
+<?php /*** $Id: asdfasdf$
+
+# Short PHP tags (must die)
+<? //$Id$
+<? # $Id$
+<? // $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+
