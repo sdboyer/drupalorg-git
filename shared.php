@@ -51,7 +51,9 @@ function is_empty_dir($dir){
 
 function is_cvs_dir($dir) {
   $files = @scandir($dir);
-  return strpos(implode(' ', $files), ',v') !== FALSE;
+  $current_files = strpos(implode(' ', $files), ',v') !== FALSE;
+  $attic = array_search('Attic', $files);
+  return $current_files || $attic;
 }
 
 /**
