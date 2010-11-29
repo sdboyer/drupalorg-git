@@ -45,7 +45,13 @@ function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $env 
 }
 
 function is_empty_dir($dir){
-  return (($files = @scandir($dir)) && count($files) <= 2);
+  $files = @scandir($dir);
+  return ($files && count($files) <= 2);
+}
+
+function is_cvs_dir($dir) {
+  $files = @scandir($dir);
+  return strpos(implode(' ', $files), ',v') !== FALSE;
 }
 
 /**

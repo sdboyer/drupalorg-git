@@ -17,6 +17,11 @@ if (is_empty_dir($source_dir)) {
   exit;
 }
 
+if (is_cvs_dir($source_dir)) {
+  git_log("Skipping non CVS source directory '$source_dir'.");
+  exit;
+}
+
 // If the target destination dir exists already, remove it.
 if (file_exists($destination_dir) && is_dir($destination_dir)) {
   passthru('rm -Rf ' . escapeshellarg($destination_dir));
