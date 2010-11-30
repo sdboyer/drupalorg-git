@@ -7,18 +7,19 @@ require_once dirname(__FILE__) . '/shared.php';
 $config_template = realpath($argv[1]);
 $repository_root = realpath($argv[2]);
 $source_dir = $argv[3];
+$absolute_source_dir = $repository_root . '/' . $source_dir;
 $elements = explode('/', $source_dir);
 $project = array_pop($elements);
 $destination_dir = $argv[4];
 
 // If the source_dir is an empty directory, skip it; cvs2git barfs on these.
-if (is_empty_dir($source_dir)) {
-  git_log("Skipping empty source directory '$source_dir'.");
+if (is_empty_dir($absolute_source_dir)) {
+  git_log("Skipping empty source directory '$absolute_source_dir'.");
   exit;
 }
 
-if (is_cvs_dir($source_dir)) {
-  git_log("Skipping non CVS source directory '$source_dir'.");
+if (!is_cvs_dir($absolute_source_dir)) {
+  git_log("Skipping non CVS source directory '$absolute_source_dir'.");
   exit;
 }
 
@@ -46,7 +47,7 @@ chdir($temp_dir);
 
 // Prepare and write the option file.
 $options = array(
-  '#DIR#' => $repository_root . '/' . $source_dir,
+  '#DIR#' => $absolute_source_dir,
 );
 file_put_contents('./cvs2git.options', strtr(file_get_contents($config_template), $options));
 
