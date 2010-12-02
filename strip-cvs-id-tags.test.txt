@@ -1,0 +1,73 @@
+$Id
+
+# First, the standard version
+// $Id$
+
+# An expanded version of the same
+// $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+
+# A less common variation
+# $Id$
+
+# An expanded version of that.
+# $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+
+# Long quotes
+/** $Id$ **/
+
+# Expanded long quotes
+/* $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $*/
+
+# On the same line as the PHP tag
+<?php // $Id$
+
+# On the same line as the PHP tag, expanded
+<?php // $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+
+# More variations of PHP tags.
+<?php // $id$
+<?php # $iD$
+<?php /*** $Id: asdfasdf$
+
+# Short PHP tags (must die)
+<? //$Id$
+<? # $Id$
+<? // $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+
+# Id preceeded by nothing or whitespace.
+$Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+  $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+$Id$
+  $Id$
+
+# Potential error – PHP variables starting with id;
+  $id_test = $testing123; # This should stay in place.
+
+# Info-file style ID tags.
+;$Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+;  $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
+;$Id$
+;  $Id$
+
+# Id in XML/HTML comment
+<!-- $Id$ -->
+<!-- $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $ -->
+
+# Unterminated tags
+# $Id
+// $Id:
+$Id
+$Id:
+
+# Wierd edge cases
+{* $Id: comment.tpl,v 1.1 2007/05/13 11:28:31 yojoe Exp $ *}
+/* $Id: typography.css,v 1.1 2009/03/12 05:25:06 zinv Exp $ */
+/* $Id: theme-gallery-body.css,v 1.1 2009/07/25 01:01:22 jingjang Exp $
+
+# Hall of shame
+# Cases we cannot safely remove
+"Project-Id-Version: Danish Translation of Drupal (webform.module) $Id: da.po,v 1.1 2010/07/30 05:04:35 fizk Exp $\n"
+	@version $Id: xajaxControl.inc.php,v 1.1 2009/04/13 18:00:00 vitzo Exp $
+          'line'     => '// $Id: classes.inc,v 1.3 2010/08/11 10:09:52 sdboyer Exp $',
+    '#value' => '<p>$Id: tweetbacks.module,v 1.3 2009/01/14 03:13:46 cscharabaruk Exp $</p>',
+
