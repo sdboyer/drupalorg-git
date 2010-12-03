@@ -1,7 +1,7 @@
 #!/usr/bin/env sed -Ef
 
 # Should be run like this:
-# sed -Ei '' -f strip-cvs-id-tags.sed strip-cvs-id-tags.test.txt
+# sed -Ei '' -f strip-cvs-keywords.sed strip-cvs-keywords.test.txt
 
 # Tag on a line by itself, preceeded by one or more spaces/comment characters.
 /^ *[\/\*#;{-].*\$[Ii][Dd].*\$/ d

@@ -43,7 +43,7 @@ $Id$
 # Potential error – PHP variables starting with id;
   $id_test = $testing123; # This should stay in place.
 
-# Info-file style ID tags.
+# Info-file style ID keyword.
 ;$Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
 ;  $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
 ;$Id$
@@ -53,7 +53,7 @@ $Id$
 <!-- $Id$ -->
 <!-- $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $ -->
 
-# Unterminated tags
+# Unterminated keywords
 # $Id
 // $Id:
 $Id

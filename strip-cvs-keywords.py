@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Python script to remove CVS tags from a whole tree of files.
+Python script to remove CVS keywords from a whole tree of files.
 
 Locates the files and uses Sed to do the hard work.
 """
@@ -46,7 +46,7 @@ FILE_NAMES = (
     'readme',
 )
 
-SED_FILE = os.path.join(os.path.dirname(__file__), 'strip-cvs-id-tags.sed')
+SED_FILE = os.path.join(os.path.dirname(__file__), 'strip-cvs-keywords.sed')
 
 def main():
     try:
