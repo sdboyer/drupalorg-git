@@ -12,7 +12,7 @@ if (!defined('LOGLEVEL')) {
   }
 }
 
-function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $env = NULL) {
+function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $cwd = NULL, $env = NULL) {
   if (!isset($env)) {
     $env = $_ENV;
   }
@@ -27,7 +27,7 @@ function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $env 
 
   git_log('Invoking ' . $command, 'DEBUG');
 
-  $process = proc_open($command, $descriptor_spec, $pipes, NULL, $env);
+  $process = proc_open($command, $descriptor_spec, $pipes, $cwd, $env);
   if (is_resource($process)) {
     $stdout = stream_get_contents($pipes[1]);
     fclose($pipes[1]);
