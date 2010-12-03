@@ -42,8 +42,6 @@ $cmd = 'mktemp -dt cvs2git-import-' . escapeshellarg($project) . '.XXXXXXXXXX';
 $temp_dir = realpath(trim(`$cmd`));
 register_shutdown_function('_clean_up_import', $temp_dir);
 
-passthru('./strip-cvs-id-tags.py ' . escapeshellarg($absolute_source_dir));
-
 // Move to the temporary directory.
 chdir($temp_dir);
 
