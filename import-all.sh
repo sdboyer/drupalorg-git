@@ -22,3 +22,7 @@ done
 mkdir -p $DESTINATION/sandboxes
 find $REPOSITORY/contributions/sandbox/ -mindepth 1 -maxdepth 1 -type d -not -empty | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP import-project.php ./cvs2git.options $REPOSITORY contributions/sandbox/% $DESTINATION/sandboxes/%/cvs-imported.git"
 
+if ["$STRIP_TAGS " != " "]; then
+  find $DESTINATION -mindepth 1 -max-depth 1 -type d -not -empty | xargs -I% basename % | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP strip-tags.php $DESTINATION/%.git"
+fi
+
