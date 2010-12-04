@@ -70,7 +70,6 @@ def main():
             name, extension = os.path.splitext(filename)
             if extension.lower() in EXTENSIONS or name in FILE_NAMES:
                 abs_path = os.path.realpath(os.path.join(path, root, filename))
-                print 'Passing file %s/%s to Sed.' % (root, filename)
                 subprocess.Popen(('sed', '-Ei', '-f', SED_FILE, abs_path))
 
 if __name__ == "__main__":
