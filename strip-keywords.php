@@ -16,8 +16,13 @@ register_shutdown_function('_clean_up_import', $temp_dir);
 git_invoke("git clone $destination_dir $temp_dir");
 
 passthru('./strip-cvs-keywords.py ' . escapeshellarg($temp_dir));
-git_invoke("git commit -a -m $commit_message", FALSE, "$temp_dir/.git", $temp_dir);
-git_invoke('git push', FALSE, "$temp_dir/.git");
+try {
+  git_invoke("git commit -a -m $commit_message", FALSE, "$temp_dir/.git", $temp_dir);
+  git_invoke('git push', FALSE, "$temp_dir/.git");
+}
+catch (exception $e) {
+  git_log('Unable to commit to branch', 'WARN', $project);
+}
 
 // ------- Utility functions -----------------------------------------------
 
