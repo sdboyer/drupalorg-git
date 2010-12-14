@@ -3,12 +3,14 @@
 // Allow the build interval to be passed to the script. If none is provided, we
 // default to 5 minutes.
 // Must be provided in seconds.
-$build_interval = getenv('BUILD_INTERVAL') ? getenv('BUILD_INTERVAL') : '3000';
+$build_interval = getenv('BUILD_INTERVAL') ? getenv('BUILD_INTERVAL') : '300';
 $last_poll = time() - $build_interval;
+// Number of threads to allow.
 $threads = 8;
-$forks = 0;
+// Config template file.
 $config_template = realpath('./cvs2git.options');
-$repository = '/var/git/cvsmirror'; # replace with path to the root of the local repository
+// Repository locations.
+$repository = '/var/git/cvsmirror';
 $destination = '/var/git/repositories';
 
 require_once './shared.php';
@@ -23,8 +25,9 @@ while (!fetch_projects($last_poll, $page, $core, $contributions)) {
   ++$page;
   echo "Fetching more! $page\n";
 }
-print_r($contributions);
 
+// Tracking variable for how many forks we have running.
+$forks = 0;
 while (!empty($contributions)) {
   $project_dir = array_pop($contributions);
   $tmp = explode('/', $project_dir);
