@@ -7,7 +7,7 @@ if (count($argv) == 5) {
   $config_template = realpath($argv[1]);
   $repository_root = realpath($argv[2]);
   $source_dir = $argv[3];
-  $destination_dir = realpath($argv[4]);
+  $destination_dir = $argv[4];
 
   $success = import_directory($config_template, $repository_root, $source_dir, $destination_dir);
   if (!$success) {
