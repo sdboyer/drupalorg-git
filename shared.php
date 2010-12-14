@@ -221,6 +221,9 @@ function import_directory($config, $root, $source, $destination) {
     );
     convert_project_tags($source, $destination, '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
   }
+  
+  // We succeeded despite all odds!
+  return TRUE;
 }
 
 /*
