@@ -46,7 +46,7 @@ if ($core) {
 while (!empty($contributions)) {
   $project_dir = array_pop($contributions);
   $tmp = explode('/', $project_dir);
-  $project = $tmp[2];
+  $project = isset($tmp[2]) ? $tmp[2] : $tmp[1];
 
   $pid = pcntl_fork();
 
@@ -93,12 +93,18 @@ function fetch_projects($last_poll, $page, &$core, &$contributions) {
       $core = TRUE;
 #      echo "Commit to core\n";
     }
-    elseif (preg_match('#contributions/(modules|themes|theme-engines|profiles|translations|docs)/([^/]+)#', $item->description, $matches)) {
+    elseif (preg_match('#contributions/(modules|themes|theme-engines|profiles|translations|docs|tricks)/([^/]+)#', $item->description, $matches)) {
       // We don't really care about translations.
       if ($matches[1] == 'translations') continue;
-
-      $project = $matches[2];
-      $contributions[$project] = $matches[0];
+      
+      if ($matches[1] == 'docs' || $matches[1] == 'tricks') {
+        $project = $matches[1];
+        $contributions[$project] = "contributions/$project";
+      }
+      else {
+        $project = $matches[2];
+        $contributions[$project] = $matches[0];
+      }
 #      echo "Commit to $project: $item->link\n";
     }
     else {
