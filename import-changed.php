@@ -28,6 +28,21 @@ while (!fetch_projects($last_poll, $page, $core, $contributions)) {
 
 // Tracking variable for how many forks we have running.
 $forks = 0;
+if ($core) {
+  $pid = pcntl_fork();
+  if ($pid == -1) {
+    die("oh noes! no fork!");
+  }
+  elseif ($pid) {
+    // Parent
+    $forks++;
+  }
+  else {
+    import_directory($config_template, $repository, 'drupal', "$destination/project/drupal.git" );
+    exit;
+  }
+}      
+
 while (!empty($contributions)) {
   $project_dir = array_pop($contributions);
   $tmp = explode('/', $project_dir);
