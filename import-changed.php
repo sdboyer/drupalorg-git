@@ -38,6 +38,7 @@ if ($core) {
     $forks++;
   }
   else {
+    // Child
     import_directory($config_template, $repository, 'drupal', "$destination/project/drupal.git" );
     exit;
   }
@@ -64,6 +65,7 @@ while (!empty($contributions)) {
     }
   }
   else {
+    // Child
     import_directory($config_template, $repository, $project_dir, "$destination/project/$project.git" );
     exit;
   }
