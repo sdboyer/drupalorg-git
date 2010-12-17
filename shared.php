@@ -272,8 +272,9 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
   }
 
   // Everything needs the initial DRUPAL- stripped out.
+  git_log("FULL list of the project's branches: \n" . print_r($all_branches, TRUE), 'DEBUG', $project);
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
-  git_log("Project has the following branches: \n" . print_r($branches, TRUE), 'DEBUG', $project);
+  git_log("Branches in \$branches pre-transform: \n" . print_r($branches, TRUE), 'DEBUG', $project);
   $branchestmp = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
   git_log("Branches after first transform: \n" . print_r($branchestmp, TRUE), 'DEBUG', $project);
   $branches = array_diff($branches, $branchestmp);
@@ -318,9 +319,10 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
   }
 
   // Everything needs the initial DRUPAL- stripped out.
+  git_log("FULL list of the project's tags: \n" . print_r($all_tags, TRUE), 'DEBUG', $project);
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
   // Have to transform twice to discover tags already converted in previous runs
-  git_log("Project has the following tags: \n" . print_r($tags, TRUE), 'DEBUG', $project);
+  git_log("Tags in \$tags pre-transform: \n" . print_r($tags, TRUE), 'DEBUG', $project);
   $tagstmp = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
   git_log("Tags after first transform: \n" . print_r($tagstmp, TRUE), 'DEBUG', $project);
   $tags = array_diff($tags, $tagstmp);
