@@ -335,6 +335,10 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
     try {
       git_invoke("git tag -f $new_tag $old_tag", FALSE, $destination_dir);
       git_log("Created new tag '$new_tag' from old tag '$old_tag'", 'INFO', $project);
+      if ($key = array_search($new_tag, $all_tags)) {
+        // existing tag - skip the rest, otherwise it'll delete the new one.
+        continue;
+      }
     }
     catch (Exception $e) {
       git_log("Creation of new tag '$new_tag' from old tag '$old_tag' failed with message $e", 'WARN', $project);
