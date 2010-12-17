@@ -256,6 +256,8 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
 
   // Generate a list of all valid branch names, ignoring master
   $branches = preg_grep('/^DRUPAL-/', $all_branches); // @todo be stricter?
+
+  // Remove existing branches that have already been converted
   if (empty($branches)) {
     // No branches to work with, bail out.
     if (array_search('master', $all_branches) !== FALSE) {
@@ -269,22 +271,25 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
     return;
   }
 
-  if ($nonconforming_branches = array_diff($all_branches, $branches, array('master'))) { // Ignore master
-    git_log("Project has the following nonconforming branches: " . implode(', ', $nonconforming_branches), 'NORMAL', $project);
-  }
-
   // Everything needs the initial DRUPAL- stripped out.
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
+  $branchestmp = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
+  $branches = array_diff($branches, $branchestmp);
   $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
+
   foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
     try {
-    // Now do the rename itself. -M forces overwriting of branches.
+      // Now do the rename itself. -M forces overwriting of branches.
       git_invoke("git branch -M $old_name $new_name", FALSE, $destination_dir);
     }
     catch (Exception $e) {
       // These are failing sometimes, not sure why
       git_log("Branch rename failed on branch '$old_name' with error '$e'", 'WARN', $project);
     }
+  }
+
+  if ($nonconforming_branches = array_diff($all_branches, $branches, array('master'), $branchestmp)) { // Ignore master
+    git_log("Project has the following nonconforming branches: " . implode(', ', $nonconforming_branches), 'NORMAL', $project);
   }
 }
 
@@ -302,10 +307,6 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
   // Convert only tags that match naming conventions
   $tags = preg_grep($match, $all_tags);
 
-  if ($nonconforming_tags = array_diff($all_tags, $tags)) {
-    git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'NORMAL', $project);
-  }
-
   if (empty($tags)) {
     // No conforming tags to work with, bail out.
     $string = empty($all_tags) ? "Project has no tags at all." : "Project has no conforming tags.";
@@ -315,6 +316,9 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
 
   // Everything needs the initial DRUPAL- stripped out.
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
+  // Have to transform twice to discover tags already converted in previous runs
+  $tagstmp = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
+  $tags = array_diff($tags, $tagstmp);
   $new_tags = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
   foreach (array_combine($tags, $new_tags) as $old_tag => $new_tag) {
     // Lowercase all remaining characters (should be just ALPHA/BETA/RC, etc.)
@@ -335,6 +339,10 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
     catch (Exception $e) {
       git_log("Deletion of old tag '$old_tag' in project '$project' failed with message $e", 'WARN', $project);
     }
+  }
+
+  if ($nonconforming_tags = array_diff($all_tags, $tags, $tagstmp)) {
+    git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'NORMAL', $project);
   }
 }
 
