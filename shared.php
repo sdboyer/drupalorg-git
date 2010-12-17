@@ -333,7 +333,7 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
     $new_tag = strtolower($new_tag);
     // Add the new tag.
     try {
-      git_invoke("git tag $new_tag $old_tag", FALSE, $destination_dir);
+      git_invoke("git tag -f $new_tag $old_tag", FALSE, $destination_dir);
       git_log("Created new tag '$new_tag' from old tag '$old_tag'", 'INFO', $project);
     }
     catch (Exception $e) {
