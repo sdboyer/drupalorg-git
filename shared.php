@@ -273,9 +273,12 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
 
   // Everything needs the initial DRUPAL- stripped out.
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
+  git_log("Project has the following branches: \n" . print_r($branches, TRUE), 'DEBUG', $project);
   $branchestmp = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
+  git_log("Branches after first transform: \n" . print_r($branchestmp, TRUE), 'DEBUG', $project);
   $branches = array_diff($branches, $branchestmp);
   $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
+  git_log("Branches after second transform: \n" . print_r($new_branches, TRUE), 'DEBUG', $project);
 
   foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
     try {
@@ -317,9 +320,12 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
   // Everything needs the initial DRUPAL- stripped out.
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
   // Have to transform twice to discover tags already converted in previous runs
+  git_log("Project has the following tags: \n" . print_r($tags, TRUE), 'DEBUG', $project);
   $tagstmp = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
+  git_log("Tags after first transform: \n" . print_r($tagstmp, TRUE), 'DEBUG', $project);
   $tags = array_diff($tags, $tagstmp);
   $new_tags = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
+  git_log("Tags after second transform: \n" . print_r($new_tags, TRUE), 'DEBUG', $project);
   foreach (array_combine($tags, $new_tags) as $old_tag => $new_tag) {
     // Lowercase all remaining characters (should be just ALPHA/BETA/RC, etc.)
     $new_tag = strtolower($new_tag);
