@@ -132,11 +132,6 @@ function import_directory($config, $root, $source, $destination) {
     return FALSE;
   }
 
-  // If the target destination dir exists already, remove it.
-  if (file_exists($destination) && is_dir($destination)) {
-    passthru('rm -Rf ' . escapeshellarg($destination));
-  }
-
   // Create the destination directory.
   $ret = 0;
   passthru('mkdir -p ' . escapeshellarg($destination), $ret);
