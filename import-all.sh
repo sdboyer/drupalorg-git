@@ -18,7 +18,3 @@ for TYPE in modules themes theme-engines profiles; do
     find $REPOSITORY/$PREFIX/ -mindepth 1 -maxdepth 1 -type d -not -empty | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP import-project.php ./cvs2git.options $REPOSITORY $PREFIX/% $DESTINATION/project/%.git"
 done
 
-# migrate sandboxes into their frozen location
-mkdir -p $DESTINATION/sandboxes
-find $REPOSITORY/contributions/sandbox/ -mindepth 1 -maxdepth 1 -type d -not -empty | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $CONCURRENCY -I% sh -c "$PHP import-project.php ./cvs2git.options $REPOSITORY contributions/sandbox/% $DESTINATION/sandboxes/%/cvs-imported.git"
-

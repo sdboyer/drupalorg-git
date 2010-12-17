@@ -45,7 +45,41 @@ function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $env 
 }
 
 function is_empty_dir($dir){
-  return (($files = @scandir($dir)) && count($files) <= 2);
+  $files = @scandir($dir);
+  return (!$files || count($files) <= 2);
+}
+
+/**
+ * Check if directory has any CVS information.
+ *
+ * This is actually sort of a recursive problem. If any subdirectory has
+ * CVS information it can be imported.
+ */
+function is_cvs_dir($dir) {
+  $files = @scandir($dir);
+
+  // If there are no files, fail early.
+  if (!$files) {
+    return FALSE;
+  }
+
+  foreach ($files as $file) {
+    $absolute = $dir . '/' . $file;
+
+    // Skip POSIX aliases
+    if ($file == '.' || $file == '..') continue;
+
+    if (is_dir($absolute) && $file == 'Attic') {
+      return TRUE;
+    }
+    elseif (strpos($file, ',v') !== FALSE) {
+      return TRUE;
+    }
+    elseif (is_dir($absolute) && is_cvs_dir($absolute)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 
 /**
