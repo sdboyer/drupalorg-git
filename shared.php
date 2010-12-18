@@ -216,7 +216,7 @@ function import_directory($config, $root, $source, $destination) {
     );
     convert_project_tags($source, $destination, '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
   }
-  
+
   // We succeeded despite all odds!
   return TRUE;
 }
@@ -291,8 +291,22 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
       git_log("Branch rename failed on branch '$old_name' with error '$e'", 'WARN', $project);
     }
   }
+  verify_project_branches($project, $destination_dir, $branches);
+}
 
-  if ($nonconforming_branches = array_diff($all_branches, $branches, array('master'), $branchestmp)) { // Ignore master
+/**
+ * Verify that the project contains exactly and only the set of branches we
+ * expect it to.
+ */
+function verify_project_branches($project, $destination_dir, $branches) {
+  $all_branches = git_invoke("ls " . escapeshellarg("$destination_dir/refs/heads/"));
+  $all_branches = array_filter(explode("\n", $all_branches)); // array-ify & remove empties
+
+  if ($missing = array_diff($branches, $all_branches)) {
+    git_log("Project should have the following branches after import, but does not: " . implode(', ', $missing), 'WARN', $project);
+  }
+
+  if ($nonconforming_branches = array_diff($all_branches, $branches, array('master'))) { // Ignore master
     git_log("Project has the following nonconforming branches: " . implode(', ', $nonconforming_branches), 'NORMAL', $project);
   }
 }
@@ -353,7 +367,22 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
     }
   }
 
-  if ($nonconforming_tags = array_diff($all_tags, $tags, $tagstmp)) {
+  verify_project_tags($project, $destination_dir, $tags);
+}
+
+/**
+ * Verify that the project contains exactly and only the set of tags we
+ * expect it to.
+ */
+function verify_project_tags($project, $destination_dir, $tags) {
+  $all_tags = git_invoke('git tag -l', FALSE, $destination_dir);
+  $all_tags = array_filter(explode("\n", $all_tags)); // array-ify & remove empties
+
+  if ($missing = array_diff($tags, $all_tags)) {
+    git_log("Project should have the following tags after import, but does not: " . implode(', ', $missing), 'WARN', $project);
+  }
+
+  if ($nonconforming_tags = array_diff($all_tags, $tags)) {
     git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'NORMAL', $project);
   }
 }
