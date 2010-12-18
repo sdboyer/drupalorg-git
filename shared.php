@@ -291,7 +291,7 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
       git_log("Branch rename failed on branch '$old_name' with error '$e'", 'WARN', $project);
     }
   }
-  verify_project_branches($project, $destination_dir, $branches);
+  verify_project_branches($project, $destination_dir, $new_branches);
 }
 
 /**
@@ -342,9 +342,11 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
   $tags = array_diff($tags, $tagstmp);
   $new_tags = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
   git_log("Tags after second transform: \n" . print_r($new_tags, TRUE), 'DEBUG', $project);
-  foreach (array_combine($tags, $new_tags) as $old_tag => $new_tag) {
+
+  $tag_list = array_combine($tags, $new_tags);
+  foreach ($tag_list as $old_tag => $new_tag) {
     // Lowercase all remaining characters (should be just ALPHA/BETA/RC, etc.)
-    $new_tag = strtolower($new_tag);
+    $tag_list[$old_tag] = $new_tag = strtolower($new_tag);
     // Add the new tag.
     try {
       git_invoke("git tag -f $new_tag $old_tag", FALSE, $destination_dir);
@@ -367,7 +369,9 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
     }
   }
 
-  verify_project_tags($project, $destination_dir, $tags);
+  git_log("Final tag list: \n" . print_r($tag_list, TRUE), 'DEBUG', $project);
+
+  verify_project_tags($project, $destination_dir, $tag_list);
 }
 
 /**
