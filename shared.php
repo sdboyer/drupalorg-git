@@ -132,11 +132,6 @@ function import_directory($config, $root, $source, $destination) {
     return FALSE;
   }
 
-  // If the target destination dir exists already, remove it.
-  if (file_exists($destination) && is_dir($destination)) {
-    passthru('rm -Rf ' . escapeshellarg($destination));
-  }
-
   // Create the destination directory.
   $ret = 0;
   passthru('mkdir -p ' . escapeshellarg($destination), $ret);
@@ -221,7 +216,7 @@ function import_directory($config, $root, $source, $destination) {
     );
     convert_project_tags($source, $destination, '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
   }
-  
+
   // We succeeded despite all odds!
   return TRUE;
 }
@@ -261,6 +256,8 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
 
   // Generate a list of all valid branch names, ignoring master
   $branches = preg_grep('/^DRUPAL-/', $all_branches); // @todo be stricter?
+
+  // Remove existing branches that have already been converted
   if (empty($branches)) {
     // No branches to work with, bail out.
     if (array_search('master', $all_branches) !== FALSE) {
@@ -274,22 +271,43 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
     return;
   }
 
-  if ($nonconforming_branches = array_diff($all_branches, $branches, array('master'))) { // Ignore master
-    git_log("Project has the following nonconforming branches: " . implode(', ', $nonconforming_branches), 'NORMAL', $project);
-  }
-
   // Everything needs the initial DRUPAL- stripped out.
+  git_log("FULL list of the project's branches: \n" . print_r($all_branches, TRUE), 'DEBUG', $project);
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
+  git_log("Branches in \$branches pre-transform: \n" . print_r($branches, TRUE), 'DEBUG', $project);
+  $branchestmp = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
+  git_log("Branches after first transform: \n" . print_r($branchestmp, TRUE), 'DEBUG', $project);
+  $branches = array_diff($branches, $branchestmp);
   $new_branches = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
+  git_log("Branches after second transform: \n" . print_r($new_branches, TRUE), 'DEBUG', $project);
+
   foreach(array_combine($branches, $new_branches) as $old_name => $new_name) {
     try {
-    // Now do the rename itself. -M forces overwriting of branches.
+      // Now do the rename itself. -M forces overwriting of branches.
       git_invoke("git branch -M $old_name $new_name", FALSE, $destination_dir);
     }
     catch (Exception $e) {
       // These are failing sometimes, not sure why
       git_log("Branch rename failed on branch '$old_name' with error '$e'", 'WARN', $project);
     }
+  }
+  verify_project_branches($project, $destination_dir, $new_branches);
+}
+
+/**
+ * Verify that the project contains exactly and only the set of branches we
+ * expect it to.
+ */
+function verify_project_branches($project, $destination_dir, $branches) {
+  $all_branches = git_invoke("ls " . escapeshellarg("$destination_dir/refs/heads/"));
+  $all_branches = array_filter(explode("\n", $all_branches)); // array-ify & remove empties
+
+  if ($missing = array_diff($branches, $all_branches)) {
+    git_log("Project should have the following branches after import, but does not: " . implode(', ', $missing), 'WARN', $project);
+  }
+
+  if ($nonconforming_branches = array_diff($all_branches, $branches, array('master'))) { // Ignore master
+    git_log("Project has the following nonconforming branches: " . implode(', ', $nonconforming_branches), 'NORMAL', $project);
   }
 }
 
@@ -307,10 +325,6 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
   // Convert only tags that match naming conventions
   $tags = preg_grep($match, $all_tags);
 
-  if ($nonconforming_tags = array_diff($all_tags, $tags)) {
-    git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'NORMAL', $project);
-  }
-
   if (empty($tags)) {
     // No conforming tags to work with, bail out.
     $string = empty($all_tags) ? "Project has no tags at all." : "Project has no conforming tags.";
@@ -319,15 +333,28 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
   }
 
   // Everything needs the initial DRUPAL- stripped out.
+  git_log("FULL list of the project's tags: \n" . print_r($all_tags, TRUE), 'DEBUG', $project);
   $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
+  // Have to transform twice to discover tags already converted in previous runs
+  git_log("Tags in \$tags pre-transform: \n" . print_r($tags, TRUE), 'DEBUG', $project);
+  $tagstmp = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
+  git_log("Tags after first transform: \n" . print_r($tagstmp, TRUE), 'DEBUG', $project);
+  $tags = array_diff($tags, $tagstmp);
   $new_tags = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
-  foreach (array_combine($tags, $new_tags) as $old_tag => $new_tag) {
+  git_log("Tags after second transform: \n" . print_r($new_tags, TRUE), 'DEBUG', $project);
+
+  $tag_list = array_combine($tags, $new_tags);
+  foreach ($tag_list as $old_tag => $new_tag) {
     // Lowercase all remaining characters (should be just ALPHA/BETA/RC, etc.)
-    $new_tag = strtolower($new_tag);
+    $tag_list[$old_tag] = $new_tag = strtolower($new_tag);
     // Add the new tag.
     try {
-      git_invoke("git tag $new_tag $old_tag", FALSE, $destination_dir);
+      git_invoke("git tag -f $new_tag $old_tag", FALSE, $destination_dir);
       git_log("Created new tag '$new_tag' from old tag '$old_tag'", 'INFO', $project);
+      //if ($key = array_search($new_tag, $all_tags)) {
+        // existing tag - skip the rest, otherwise it'll delete the new one.
+        //continue;
+      //}
     }
     catch (Exception $e) {
       git_log("Creation of new tag '$new_tag' from old tag '$old_tag' failed with message $e", 'WARN', $project);
@@ -340,6 +367,27 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
     catch (Exception $e) {
       git_log("Deletion of old tag '$old_tag' in project '$project' failed with message $e", 'WARN', $project);
     }
+  }
+
+  git_log("Final tag list: \n" . print_r($tag_list, TRUE), 'DEBUG', $project);
+
+  verify_project_tags($project, $destination_dir, $tag_list);
+}
+
+/**
+ * Verify that the project contains exactly and only the set of tags we
+ * expect it to.
+ */
+function verify_project_tags($project, $destination_dir, $tags) {
+  $all_tags = git_invoke('git tag -l', FALSE, $destination_dir);
+  $all_tags = array_filter(explode("\n", $all_tags)); // array-ify & remove empties
+
+  if ($missing = array_diff($tags, $all_tags)) {
+    git_log("Project should have the following tags after import, but does not: " . implode(', ', $missing), 'WARN', $project);
+  }
+
+  if ($nonconforming_tags = array_diff($all_tags, $tags)) {
+    git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'NORMAL', $project);
   }
 }
 
