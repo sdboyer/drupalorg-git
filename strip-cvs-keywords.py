@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+"""
+Python script to remove CVS keywords from a whole tree of files.
+
+Locates the files and uses Sed to do the hard work.
+"""
+
+import os
+import subprocess
+import sys
+
+# List of file extensions we want to work with.
+EXTENSIONS = (
+    '.conf',
+    '.css',
+    '.drush',
+    '.htm',
+    '.html',
+    '.inc',
+    '.info',
+    '.ini',
+    '.install',
+    '.js',
+    '.module',
+    '.mysql',
+    '.pgsql',
+    '.php',
+    '.pl',
+    '.po',
+    '.pot',
+    '.profile',
+    '.sh',
+    '.sql',
+    '.template',
+    '.test',
+    '.theme',
+    '.tpl',
+    '.txt',
+    '.xml',
+    '.xhtml',
+)
+
+FILE_NAMES = (
+    'INSTALL',
+    'README',
+    'readme',
+)
+
+SED_FILE = os.path.join(os.path.dirname(__file__), 'strip-cvs-keywords.sed')
+
+def main():
+    try:
+        # If a dirname is passed as the first parameter, use that.
+        path = os.path.realpath(sys.argv[1])
+    except IndexError:
+        # Fall back on the current working directory.
+        path = os.getcwd()
+
+    if not os.path.isdir(path):
+        sys.exit('"%s" is not a directory.' % path)
+
+    for root, dirs, files in os.walk(path):
+        # Don't mess with VCS files.
+        if 'CVS' in dirs:
+            dirs.remove('CVS')
+        if '.git' in dirs:
+            dirs.remove('.git')
+
+        for filename in files:
+            name, extension = os.path.splitext(filename)
+            if extension.lower() in EXTENSIONS or name in FILE_NAMES:
+                abs_path = os.path.realpath(os.path.join(path, root, filename))
+                subprocess.Popen(('sed', '-Ei', '-f', SED_FILE, abs_path))
+
+if __name__ == "__main__":
+    main()
+
