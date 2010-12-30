@@ -117,6 +117,7 @@ from cvs2svn_lib.property_setters import ExecutablePropertySetter
 from cvs2svn_lib.property_setters import KeywordsPropertySetter
 from cvs2svn_lib.property_setters import MimeMapper
 from cvs2svn_lib.property_setters import SVNBinaryFileKeywordsPropertySetter
+import csv
 
 # To choose the level of logging output, uncomment one of the
 # following lines:
@@ -481,17 +482,13 @@ ctx.retain_conflicting_attic_files = True
 # with "u" as a prefix) or 8-bit strings in the utf-8 encoding.
 # Please substitute your own project's usernames here to use with the
 # author_transforms option of GitOutputOption below.
-author_transforms={
-    'jrandom' : ('J. Random', 'jrandom@example.com'),
-    'mhagger' : ('Michael Haggerty', 'mhagger@alum.mit.edu'),
-    'brane' : (u'Branko Čibej', 'brane@xbc.nu'),
-    'ringstrom' : ('Tobias Ringström', 'tobias@ringstrom.mine.nu'),
-    'dionisos' : (u'Erik Hülsmann', 'e.huelsmann@gmx.net'),
-
-    # This one will be used for commits for which CVS doesn't record
-    # the original author, as explained above.
-    'cvs2git' : ('cvs2git', 'nobody@drupal.org'),
-    }
+author_transforms = {}
+cvsReader = csv.reader(open('#CSV#', 'rb'), delimiter=',', quotechar='"')
+for row in cvsReader:
+    # uid  ,Full Name         ,CVS name ,email
+    # "102","Jonathan W. Webb","webbj74","developer@example.com"
+    #
+    author_transforms[row[2]] = (row[1], row[3])
 
 # This is the main option that causes cvs2git to output to a
 # "fastimport"-format dumpfile rather than to Subversion:
