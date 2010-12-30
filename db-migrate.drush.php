@@ -19,6 +19,8 @@ while ($row = db_fetch_object($result)) {
 
 $gitbackend = versioncontrol_get_backends('git');
 
+// ensure vc_project's table is empty for a nice, clean insert
+db_delete('versioncontrol_project_projects')->execute();
 $vc_project_insert = db_insert('versioncontrol_project_projects')
   ->fields(array('nid', 'repo_id'));
 
