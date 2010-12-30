@@ -151,6 +151,7 @@ function import_directory($config, $root, $source, $destination) {
   // Prepare and write the option file.
   $options = array(
     '#DIR#' => $absolute_source_dir,
+    '#CSV#' => dirname($config) . '/cvs.csv',
   );
   file_put_contents('./cvs2git.options', strtr(file_get_contents($config), $options));
 
