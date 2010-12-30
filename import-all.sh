@@ -1,16 +1,16 @@
 #!/bin/sh
 
 if [ ! $C2G_CONCURRENCY ]; then
-    CONCURRENCY=8 # set to the number of cores you want to pwn with the migration process
+    C2G_CONCURRENCY=8 # set to the number of cores you want to pwn with the migration process
 fi
 if [ ! $C2G_REPOSITORY ]; then
-    REPOSITORY=/var/git/cvsmirror # replace with path to the root of the local repository
+    C2G_REPOSITORY=/var/git/cvsmirror # replace with path to the root of the local repository
 fi
 if [ ! $C2G_DESTINATION ]; then
-    DESTINATION=/var/git/repositories
+    C2G_DESTINATION=/var/git/repositories
 fi
 if [ ! $C2G_PHP ]; then
-    PHP="/usr/bin/php"
+    C2G_PHP="/usr/bin/php"
 fi
 
 mkdir -p $C2G_DESTINATION/project
