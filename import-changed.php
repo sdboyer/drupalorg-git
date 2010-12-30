@@ -44,6 +44,7 @@ if ($core) {
   }
 }      
 
+$success = TRUE;
 while (!empty($contributions)) {
   $project_dir = array_pop($contributions);
   $tmp = explode('/', $project_dir);
@@ -60,19 +61,29 @@ while (!empty($contributions)) {
 
     // If we've run out of headroom, wait for a process to finish.
     if ($forks >= $threads) {
-      pcntl_wait($status);
+      $pid = pcntl_wait($status);
+      $success &= pcntl_wifstopped($status);
       $forks--;
     }
   }
   else {
     // Child
-    import_directory($config_template, $repository, $project_dir, "$destination/project/$project.git" );
+    $success = import_directory($config_template, $repository, $project_dir, "$destination/project/$project.git" );
+    if (!$success) {
+      exit('Failed to import ' . $source_dir);
+    }
     exit;
   }
 }
 
 // Make sure all process finish before exiting.
-while ($forks) { pcntl_wait($status); $forks--; }
+while ($forks) {
+  $pid = pcntl_wait($status);
+  $success &= pcntl_wifstopped($status);
+  $forks--;
+}
+
+exit(!$success);
 
 /*******************************************************************************
  * Helper functions
