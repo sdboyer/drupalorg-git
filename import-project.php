@@ -9,7 +9,7 @@ if (count($argv) == 5) {
   $source_dir = $argv[3];
   $destination_dir = $argv[4];
 
-  $success = import_directory($config_template, $repository_root, $source_dir, $destination_dir);
+  $success = import_directory($config_template, $repository_root, $source_dir, $destination_dir, TRUE);
   if (!$success) {
     exit('Failed to import ' . $source_dir);
   }

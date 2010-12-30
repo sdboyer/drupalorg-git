@@ -116,7 +116,7 @@ function git_log($message, $level = 'NORMAL', $project = NULL) {
 /**
  * Helper function to import a directory to a git repository.
  */
-function import_directory($config, $root, $source, $destination) {
+function import_directory($config, $root, $source, $destination, $wipe = FALSE) {
   $absolute_source_dir = $root . '/' . $source;
   $elements = explode('/', $source);
   $project = array_pop($elements);
@@ -130,6 +130,11 @@ function import_directory($config, $root, $source, $destination) {
   if (!is_cvs_dir($absolute_source_dir)) {
     git_log("Skipping non CVS source directory '$absolute_source_dir'.");
     return FALSE;
+  }
+
+  // If the target destination dir exists already, remove it.
+  if ($wipe && file_exists($destination) && is_dir($destination)) {
+    passthru('rm -Rf ' . escapeshellarg($destination));
   }
 
   // Create the destination directory.
