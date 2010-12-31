@@ -58,8 +58,8 @@ foreach ($projects as $project) {
     'plugins' => array(
       // @TODO Update these with d.o specific plugins
       'auth_handler' => 'account',
-      'author_mapper' => 'simple_mail',
-      'committer_mapper' => 'simple_mail'
+      'author_mapper' => 'drupalorg_mapper',
+      'committer_mapper' => 'drupalorg_mapper',
     ),
   );
 
