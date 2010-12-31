@@ -19,6 +19,17 @@ while ($row = db_fetch_object($result)) {
 
 $gitbackend = versioncontrol_get_backends('git');
 
+$auth_data = array(
+  'access' => VersioncontrolAuthHandlerMappedAccounts::ALL,
+  'branch_create' => VersioncontrolAuthHandlerMappedAccounts::DENY,
+  'branch_update' => VersioncontrolAuthHandlerMappedAccounts::DENY,
+  'branch_delete' => VersioncontrolAuthHandlerMappedAccounts::DENY,
+  'tag_create' => VersioncontrolAuthHandlerMappedAccounts::DENY,
+  'tag_update' => VersioncontrolAuthHandlerMappedAccounts::DENY,
+  'tag_delete' => VersioncontrolAuthHandlerMappedAccounts::DENY,
+  'per-label' => array()
+);
+
 // ensure vc_project's table is empty for a nice, clean insert
 db_delete('versioncontrol_project_projects')->execute();
 $vc_project_insert = db_insert('versioncontrol_project_projects')
@@ -44,6 +55,12 @@ foreach ($projects as $project) {
     'name' => 'project_' . $parts[1],
     'root' => '/var/git/stagingrepos/project/' . $parts[1] . '.git',
     'vcs' => 'git',
+    'plugins' => array(
+      // @TODO Update these with d.o specific plugins
+      'auth_handler' => 'account',
+      'author_mapper' => 'simple_mail',
+      'committer_mapper' => 'simple_mail'
+    ),
   );
 
   // Build & insert the repo
@@ -59,6 +76,14 @@ foreach ($projects as $project) {
   $vc_project_insert->values(array('nid' => $project->nid, 'repo_id' => $repo->repo_id));
 
   $repos[$repo->repo_id] = $repo;
+
+  // Copy commit access from cvs_project_maintainers to versioncontrol
+  $auth_handler = $repo->getAuthHandler();
+  $maintainers = db_query('SELECT uid FROM cvs_project_maintainers WHERE nid = %d', $project->nid);
+  while ($maintainer = db_fetch_object($maintainers)) {
+    $auth_handler->setUserData($maintainer->uid, $auth_data);
+  }
+  $auth_handler->save();
 }
 
 // Insert the record of the all the repos into vc_project's tracking table.
