@@ -14,7 +14,7 @@ $result = db_query('SELECT p.nid, p.uri, c.directory FROM project_projects AS p 
 
 $projects = array();
 while ($row = db_fetch_object($result)) {
-  $projects[$row->nid] = $row;
+  $projects[] = $row;
 }
 
 $gitbackend = versioncontrol_get_backends('git');
@@ -26,13 +26,17 @@ $vc_project_insert = db_insert('versioncontrol_project_projects')
 
 $repos = array();
 foreach ($projects as $project) {
+  if (empty($project->nid)) {
+    watchdog('cvsmigration', 'No nid for project "!project". This should NOT happen.', array('!project' => $project->uri), WATCHDOG_ERROR);
+    continue;
+  }
   $parts = explode('/', trim($project->directory, '/'));
   if (!in_array($parts[0], array('modules', 'themes', 'profiles', 'theme-engines')) && $project->nid != 3060) {
     // If the leading path isn't in one of these places, we skip it. unless it's core.
     continue;
   }
   if (!is_dir('/var/git/stagingrepos/project/' . $parts[1] . '.git')) {
-    watchdog('cvsmigration', 'Project !project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $project->directory . '.git', WATCHDOG_ERROR));
+    watchdog('cvsmigration', 'Project !project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $project->directory . '.git'), WATCHDOG_ERROR);
     continue;
   }
 
@@ -45,6 +49,12 @@ foreach ($projects as $project) {
   // Build & insert the repo
   $repo = $gitbackend->buildEntity('repo', $data);
   $repo->save();
+
+  if (empty($repo->repo_id)) {
+    watchdog('cvsmigration', 'Repo id not present on the "!repo" repository after save. This should NOT happen.', array('!repo' => $repo->name), WATCHDOG_ERROR);
+    continue;
+  }
+
   // enqueue the project values for insertion
   $vc_project_insert->values(array('nid' => $project->nid, 'repo_id' => $repo->repo_id));
 
