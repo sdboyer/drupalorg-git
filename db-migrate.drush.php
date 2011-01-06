@@ -52,7 +52,7 @@ foreach ($projects as $project) {
   }
 
   $data = array(
-    'name' => 'project_' . $parts[1],
+    'name' => $parts[1],
     'root' => '/var/git/stagingrepos/project/' . $parts[1] . '.git',
     'vcs' => 'git',
     'plugins' => array(
