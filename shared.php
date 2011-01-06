@@ -313,7 +313,7 @@ function verify_project_branches($project, $destination_dir, $branches) {
   }
 
   if ($nonconforming_branches = array_diff($all_branches, $branches, array('master'))) { // Ignore master
-    git_log("Project has the following nonconforming branches: " . implode(', ', $nonconforming_branches), 'NORMAL', $project);
+    git_log("Project has the following nonconforming branches: " . implode(', ', $nonconforming_branches), 'QUIET', $project);
   }
 }
 
@@ -393,7 +393,7 @@ function verify_project_tags($project, $destination_dir, $tags) {
   }
 
   if ($nonconforming_tags = array_diff($all_tags, $tags)) {
-    git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'NORMAL', $project);
+    git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'QUIET', $project);
   }
 }
 
