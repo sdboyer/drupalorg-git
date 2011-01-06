@@ -17,6 +17,10 @@ while ($row = db_fetch_object($result)) {
   $projects[] = $row;
 }
 
+// ensure the plugin is loaded
+ctools_include('plugins');
+ctools_plugin_load_class('versioncontrol', 'vcs_auth', 'account', 'handler');
+
 $gitbackend = versioncontrol_get_backends('git');
 
 $auth_data = array(
