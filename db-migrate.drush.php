@@ -51,7 +51,7 @@ foreach ($projects as $project) {
     continue;
   }
   if (!is_dir('/var/git/stagingrepos/project/' . $parts[1] . '.git')) {
-    watchdog('cvsmigration', 'Project !project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $project->directory . '.git'), WATCHDOG_ERROR);
+    watchdog('cvsmigration', 'Project !project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $parts[1] . '.git'), WATCHDOG_ERROR);
     continue;
   }
 
