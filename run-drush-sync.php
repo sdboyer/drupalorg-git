@@ -27,7 +27,7 @@ for ($i = 0; $i < $proc_count; ++$i) {
     // Child
     $repos = implode(',', $chunks[$i]);
     // give feedback on list of repos to be imported
-    passthru(escapeshellarg($drush) . ' vcapi-parse-logs ' . escapeshellarg($repos));
+    passthru(escapeshellcmd($drush . ' vcapi-parse-logs ' . escapeshellarg($repos)));
     exit;
   }
 }
