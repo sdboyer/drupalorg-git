@@ -8,46 +8,31 @@ $dirs = preg_replace('#^/var/git/stagingrepos/project/(.*)\.git$#', '\1', $raw_d
 
 $dirs_num = count($dirs);
 
-$per_process_count = $dirs_num / 8;
+$chunks = array_chunk($dirs, $dirs_num / $proc_count);
 
 // Run eight forked subprocesses
 $success = TRUE;
 $forks = 0;
 for ($i = 0; $i < $proc_count; ++$i) {
-  $start = $dirs_num * $i;
-
-  if ($i != ($proc_count - 1)) {
-    $this_dirs = array_slice($dirs, $start, $per_process_count);
-  }
-  else {
-    $this_dirs = array_slice($dirs, $start);
-  }
-
   $pid = pcntl_fork();
 
   if ($pid == -1) {
     die("oh noes! no fork!");
   }
   elseif ($pid) {
-    // Parent
+    // Parent; increment the fork counter.
     $forks++;
-
-    // If we've run out of headroom, wait for a process to finish.
-    if ($forks >= ($proc_count - 1)) {
-      $pid = pcntl_wait($status);
-      $success &= pcntl_wifstopped($status);
-      $forks--;
-    }
   }
   else {
     // Child
-    $repos = implode(',', $this_dirs);
+    $repos = implode(',', $chunks[$i]);
+    // give feedback on list of repos to be imported
     passthru(escapeshellarg($drush) . ' vcapi-parse-logs ' . escapeshellarg($repos));
     exit;
   }
 }
 
-// Make sure all process finish before exiting.
+// Make sure all process finish, then exit.
 while ($forks) {
   $pid = pcntl_wait($status);
   $success &= pcntl_wifstopped($status);
