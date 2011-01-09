@@ -333,8 +333,12 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
 
   if (empty($tags)) {
     // No conforming tags to work with, bail out.
-    $string = empty($all_tags) ? "Project has no tags at all." : "Project has no conforming tags.";
-    git_log($string, 'NORMAL', $project);
+    if (empty($all_tags)) {
+      git_log("Project has no tags at all.", 'NORMAL', $project);
+    }
+    else {
+      git_log("Project has no conforming tags, and the following nonconforming tags: " . implode(', ', $all_tags), 'WARN', $project);
+    }
     return;
   }
 
