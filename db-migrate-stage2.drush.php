@@ -36,7 +36,7 @@ while ($row = db_fetch_object($result)) {
 
 
 function update_release(VersioncontrolGitRepository $repo, $release_data, $patterns, $insert) {
-  if (!preg_grep($patterns['tagmatch'], $release_data->tag)) {
+  if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
     git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern - major problem, this MUST be addressed.", 'WARN', $repo->name);
     return;
   }
