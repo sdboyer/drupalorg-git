@@ -15,6 +15,11 @@ require_once dirname(__FILE__) . '/shared.php';
 
 global $rename_patterns;
 
+// for ongoing work purposes - a list of release node nids to ignore.
+$ignores = array(
+  97982,
+);
+
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
 
 while ($row = db_fetch_object($result)) {
@@ -31,6 +36,9 @@ while ($row = db_fetch_object($result)) {
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
+    if (in_array($release_data->nid, $ignores)) {
+      continue;
+    }
     update_release($repo, $release_data, $row->nid == 3060 ? $rename_patterns['core'] : $rename_patterns['contrib'], $insert);
   }
   $insert->execute();
