@@ -78,10 +78,8 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
     return;
   }
 
-  // Update project release node listings.
-  // Comment for dev, since it causes the base dataset to change and makes it impossible to run more than once.
-  // db_query("UPDATE {project_release_nodes} SET tag = '%s' WHERE nid = %d", array($label->name, $release_data->nid));
-  //
+  // Update project release node listings
+  db_query("UPDATE {project_release_nodes} SET tag = '%s' WHERE nid = %d", array($label->name, $release_data->nid));
   // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags. REPLACE to make repetition easier.
   $insert->values(array(
     'release_nid' => $release_data->nid,
