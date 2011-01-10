@@ -42,9 +42,10 @@ while ($row = db_fetch_object($result)) {
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
-    if (in_array($release_data->nid, $ignores)) {
-      continue;
-    }
+    // Don't need to skip these as long as the table constraints don't preclude duplicates.
+//    if (in_array($release_data->nid, $ignores)) {
+//      continue;
+//    }
     update_release($repo, $release_data, $row->nid == 3060 ? $rename_patterns['core'] : $rename_patterns['contrib'], $insert);
   }
   $insert->execute();
