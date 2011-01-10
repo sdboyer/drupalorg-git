@@ -48,7 +48,8 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
       $transformed = preg_replace(array_keys($patterns['branches']), array_values($patterns['branches']), $release_data->tag);
     }
     git_log("Transformed CVS branch '$release_data->tag' into git branch '$transformed'", 'INFO', $repo->name);
-    $label = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
+    $labels = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
+    $label = reset($labels);
   }
   else {
     if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
@@ -57,10 +58,11 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
     }
     $transformed = preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag);
     git_log("Transformed CVS tag '$release_data->tag' into git tag '$transformed'", 'INFO', $repo->name);
-    $label = $repo->loadTags(array(), array('name' => $transformed), array('may cache' => FALSE));
+    $labels = $repo->loadTags(array(), array('name' => $transformed), array('may cache' => FALSE));
+    $label = reset($labels);
   }
 
-  if (empty($label)) {
+  if (empty($label) || empty($label->label_id)) {
     // No label could be found - big problem.
     git_log("No label found in repository '$repo->name' with name '$transformed'. Major problem.", 'WARN', $repo->name);
     return;
