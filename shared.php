@@ -235,7 +235,7 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
     convert_project_branches($source, $destination, $trans_map);
     // Now tags.
     $trans_map = $rename_patterns['core']['tags'];
-    convert_project_tags($source, $destination, $rename_patterns['core']['tagsmatch'], $trans_map);
+    convert_project_tags($source, $destination, $rename_patterns['core']['tagmatch'], $trans_map);
   }
   // For contrib, minus sandboxes
   else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
@@ -244,7 +244,7 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
     convert_project_branches($source, $destination, $trans_map);
     // Now tags.
     $trans_map = $rename_patterns['contrib']['tags'];
-    convert_project_tags($source, $destination, $rename_patterns['contrib']['tagsmatch'], $trans_map);
+    convert_project_tags($source, $destination, $rename_patterns['contrib']['tagmatch'], $trans_map);
   }
 
   // We succeeded despite all odds!
