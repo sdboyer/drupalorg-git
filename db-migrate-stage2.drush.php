@@ -24,6 +24,17 @@ $ignores = array(
   984516, // opentracker 6.x-1.1
   898952, // user_alert 6.x-1.3
   991912, // csstidy 6.x-2.0-rc2
+  813730, // fancy_login 6.x-1.3
+  417912, // module_grants 6.x-6.x-dev
+  1011606, // get_image
+  787054, // uc_ajax_cart 6.x-2.0-beta2
+  598314, // duplicate_role 6.x-1.x-dev
+  552112, // taxonomy_csv 6.x-4.2
+  579486, // event_notification 5.x-2.1
+  579502, // event_notification 5.x-2.1
+  579504, // event_notification 5.x-2.1
+  229130, // rssad 6.x-1.0
+  695436, // drush 6.x-3.0-alpha1
 );
 
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
@@ -31,10 +42,6 @@ $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER 
 while ($row = db_fetch_object($result)) {
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
-
-  if (empty($repo)) {
-
-  }
 
   $release_query = db_query('SELECT prn.pid, prn.nid, prn.version, prn.tag, prn.version_extra, ct.branch FROM {project_release_nodes} AS prn LEFT JOIN {cvs_tags} AS ct ON prn.pid = ct.nid AND prn.tag = ct.tag WHERE prn.pid = %d', $row->nid);
   // Ensure no stale data.
