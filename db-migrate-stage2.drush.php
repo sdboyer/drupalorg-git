@@ -38,7 +38,7 @@ while ($row = db_fetch_object($result)) {
 
 
 function update_release(VersioncontrolGitRepository $repo, $release_data, $patterns, $insert) {
-  if ($release_data->branch == 1) {
+  if ($release_data->branch == 1 || $release_data->tag == 'HEAD') { // HEAD doesn't get an entry in {cvs_tags} as a branch.
     // Special-case HEAD.
     if ($release_data->tag == 'HEAD') {
       // TODO note that if/when we do #994244, this'll get a little more complicated.
