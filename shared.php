@@ -12,6 +12,43 @@ if (!defined('LOGLEVEL')) {
   }
 }
 
+global $rename_patterns;
+
+$rename_patterns = array(
+  'core' => array(
+    'branches' => array(
+      // One version for 4-7 and prior...
+      '/^(\d)-(\d)$/' => '\1.\2.x',
+      // And another for D5 and later
+      '/^(\d)$/' => '\1.x',
+    ),
+    'tags' => array(
+      // 4-7 and earlier base transform
+      '/^(\d)-(\d)-(\d+)/' => '\1.\2.\3',
+      // 5 and later base transform
+      '/^(\d)-(\d+)/' => '\1.\2',
+    ),
+    'tagmatch' => '/^DRUPAL-\d(-\d)?-\d+(-(\w+)(-)?(\d+)?)?$/',
+  ),
+  'contrib' => array(
+    'branches' => array(
+      // Ensure that any "pseudo" branch names are made to follow the official pattern
+      '/^(\d(-\d)?)$/' => '\1--1',
+      // With pseudonames converted, do full transform. One version for 4-7 and prior...
+      '/^(\d)-(\d)--(\d+)$/' => '\1.\2.x-\3.x',
+      // And another for D5 and later
+      '/^(\d)--(\d+)$/' => '\1.x-\2.x',
+    ),
+    'tags' => array(
+      // 4-7 and earlier base transform
+      '/^(\d)-(\d)--(\d+)-(\d+)/' => '\1.\2.x-\3.\4',
+      // 5 and later base transform
+      '/^(\d)--(\d+)-(\d+)/' => '\1.x-\2.\3',
+    ),
+    'tagmatch' => '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/',
+  ),
+);
+
 function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $cwd = NULL, $env = NULL) {
   if (!isset($env)) {
     $env = $_ENV;
@@ -117,6 +154,7 @@ function git_log($message, $level = 'NORMAL', $project = NULL) {
  * Helper function to import a directory to a git repository.
  */
 function import_directory($config, $root, $source, $destination, $wipe = FALSE) {
+  global $rename_patterns;
   $absolute_source_dir = $root . '/' . $source;
   $elements = explode('/', $source);
   $project = array_pop($elements);
@@ -185,41 +223,19 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
   git_log("Performing branch/tag renaming.", 'DEBUG', $source);
   // For core
   if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) { // for core
-    $trans_map = array(
-      // One version for 4-7 and prior...
-      '/^(\d)-(\d)$/' => '\1.\2.x',
-      // And another for D5 and later
-      '/^(\d)$/' => '\1.x',
-    );
+    $trans_map = $rename_patterns['core']['branches'];
     convert_project_branches($source, $destination, $trans_map);
     // Now tags.
-    $trans_map = array(
-      // 4-7 and earlier base transform
-      '/^(\d)-(\d)-(\d+)/' => '\1.\2.\3',
-      // 5 and later base transform
-      '/^(\d)-(\d+)/' => '\1.\2',
-    );
+    $trans_map = $rename_patterns['core']['tags'];
     convert_project_tags($source, $destination, '/^DRUPAL-\d(-\d)?-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
   }
   // For contrib, minus sandboxes
   else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
     // Branches first.
-    $trans_map = array(
-      // Ensure that any "pseudo" branch names are made to follow the official pattern
-      '/^(\d(-\d)?)$/' => '\1--1',
-      // With pseudonames converted, do full transform. One version for 4-7 and prior...
-      '/^(\d)-(\d)--(\d+)$/' => '\1.\2.x-\3.x',
-      // And another for D5 and later
-      '/^(\d)--(\d+)$/' => '\1.x-\2.x',
-    );
+    $trans_map = $rename_patterns['contrib']['branches'];
     convert_project_branches($source, $destination, $trans_map);
     // Now tags.
-    $trans_map = array(
-      // 4-7 and earlier base transform
-      '/^(\d)-(\d)--(\d+)-(\d+)/' => '\1.\2.x-\3.\4',
-      // 5 and later base transform
-      '/^(\d)--(\d+)-(\d+)/' => '\1.x-\2.\3',
-    );
+    $trans_map = $rename_patterns['contrib']['tags'];
     convert_project_tags($source, $destination, '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
   }
 
