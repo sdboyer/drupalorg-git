@@ -45,6 +45,7 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
     else {
       $transformed = preg_replace(array_keys($patterns['branches']), array_values($patterns['branches']), $release_data->tag);
     }
+    git_log("Transformed CVS branch '$release_data->tag' into git branch '$transformed'", 'INFO', $repo->name);
     $label = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
   }
   else {
@@ -53,6 +54,7 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
       return;
     }
     $transformed = preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag);
+    git_log("Transformed CVS tag '$release_data->tag' into git tag '$transformed'", 'INFO', $repo->name);
     $label = $repo->loadTags(array(), array('name' => $transformed), array('may cache' => FALSE));
   }
 
