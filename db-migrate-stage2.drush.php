@@ -58,6 +58,9 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
     if ($release_data->tag == 'HEAD') {
       // TODO note that if/when we do #994244, this'll get a little more complicated.
       $transformed = 'master';
+      if ($release_data->version == 'HEAD') {
+        $release_data->version = 'master';
+      }
     }
     else {
       $transformed = strtolower(preg_replace(array_keys($patterns['branches']), array_values($patterns['branches']), $release_data->tag));
@@ -84,7 +87,7 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
   }
 
   // Update project release node listings
-  db_query("UPDATE {project_release_nodes} SET tag = '%s' WHERE nid = %d", array($label->name, $release_data->nid));
+  db_query("UPDATE {project_release_nodes} SET tag = '%s', version = '%s' WHERE nid = %d", array($label->name, $release_data->nid));
   // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags. REPLACE to make repetition easier.
   $insert->values(array(
     'release_nid' => $release_data->nid,
