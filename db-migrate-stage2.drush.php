@@ -20,6 +20,10 @@ $ignores = array(
   97982, // relativity 4.7.x-2.x-dev
   749752, // forward 6.x-1.15
   96095, // track HEAD...or 6.x-0.x. wtf.
+  998168, // hero HEAD/6.x-1.x-dev
+  984516, // opentracker 6.x-1.1
+  898952, // user_alert 6.x-1.3
+  991912, // csstidy 6.x-2.0-rc2
 );
 
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
