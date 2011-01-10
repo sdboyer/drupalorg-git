@@ -17,7 +17,9 @@ global $rename_patterns;
 
 // for ongoing work purposes - a list of release node nids to ignore.
 $ignores = array(
-  97982,
+  97982, // relativity 4.7.x-2.x-dev
+  749752, // forward 6.x-1.15
+  96095, // track HEAD...or 6.x-0.x. wtf.
 );
 
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
