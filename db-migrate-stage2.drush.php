@@ -18,7 +18,7 @@ global $rename_patterns;
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
 
 while ($row = db_fetch_object($result)) {
-  $repos = versioncontrol_repository_load_multiple($row->repo_id, array(), array('may cache' => FALSE));
+  $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
 
   if (empty($repo)) {
@@ -65,4 +65,3 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
     'project_nid' => $release_data->pid,
   ));
 }
- 
