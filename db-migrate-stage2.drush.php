@@ -29,7 +29,7 @@ while ($row = db_fetch_object($result)) {
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
-    update_release($repo, $release_data, $rename_patterns, $insert);
+    update_release($repo, $release_data, $row->nid == 3060 ? $rename_patterns['core'] : $rename_patterns['contrib'], $insert);
   }
   $insert->execute();
 }
