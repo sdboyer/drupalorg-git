@@ -36,16 +36,22 @@ while ($row = db_fetch_object($result)) {
 
 
 function update_release(VersioncontrolGitRepository $repo, $release_data, $patterns, $insert) {
-  if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
-    git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern - major problem, this MUST be addressed.", 'WARN', $repo->name);
-    return;
-  }
-
   if ($release_data->branch == 1) {
-    $transformed = preg_replace(array_keys($patterns['branches']), array_values($patterns['branches']), $release_data->tag);
+    // Special-case HEAD.
+    if ($release_data->tag == 'HEAD') {
+      // TODO note that if/when we do #994244, this'll get a little more complicated.
+      $transformed = 'master';
+    }
+    else {
+      $transformed = preg_replace(array_keys($patterns['branches']), array_values($patterns['branches']), $release_data->tag);
+    }
     $label = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
   }
   else {
+    if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
+      git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern - major problem, this MUST be addressed.", 'WARN', $repo->name);
+      return;
+    }
     $transformed = preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag);
     $label = $repo->loadTags(array(), array('name' => $transformed), array('may cache' => FALSE));
   }
