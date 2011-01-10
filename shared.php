@@ -17,12 +17,16 @@ global $rename_patterns;
 $rename_patterns = array(
   'core' => array(
     'branches' => array(
+      // Strip DRUPAL- prefix.
+      '/^DRUPAL-/' => '',
       // One version for 4-7 and prior...
       '/^(\d)-(\d)$/' => '\1.\2.x',
       // And another for D5 and later
       '/^(\d)$/' => '\1.x',
     ),
     'tags' => array(
+      // Strip DRUPAL- prefix.
+      '/^DRUPAL-/' => '',
       // 4-7 and earlier base transform
       '/^(\d)-(\d)-(\d+)/' => '\1.\2.\3',
       // 5 and later base transform
@@ -32,6 +36,8 @@ $rename_patterns = array(
   ),
   'contrib' => array(
     'branches' => array(
+      // Strip DRUPAL- prefix.
+      '/^DRUPAL-/' => '',
       // Ensure that any "pseudo" branch names are made to follow the official pattern
       '/^(\d(-\d)?)$/' => '\1--1',
       // With pseudonames converted, do full transform. One version for 4-7 and prior...
@@ -40,6 +46,8 @@ $rename_patterns = array(
       '/^(\d)--(\d+)$/' => '\1.x-\2.x',
     ),
     'tags' => array(
+      // Strip DRUPAL- prefix.
+      '/^DRUPAL-/' => '',
       // 4-7 and earlier base transform
       '/^(\d)-(\d)--(\d+)-(\d+)/' => '\1.\2.x-\3.\4',
       // 5 and later base transform
@@ -227,7 +235,7 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
     convert_project_branches($source, $destination, $trans_map);
     // Now tags.
     $trans_map = $rename_patterns['core']['tags'];
-    convert_project_tags($source, $destination, '/^DRUPAL-\d(-\d)?-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
+    convert_project_tags($source, $destination, $rename_patterns['core']['tagsmatch'], $trans_map);
   }
   // For contrib, minus sandboxes
   else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
@@ -236,7 +244,7 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
     convert_project_branches($source, $destination, $trans_map);
     // Now tags.
     $trans_map = $rename_patterns['contrib']['tags'];
-    convert_project_tags($source, $destination, '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/', $trans_map);
+    convert_project_tags($source, $destination, $rename_patterns['contrib']['tagsmatch'], $trans_map);
   }
 
   // We succeeded despite all odds!
@@ -295,7 +303,6 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
 
   // Everything needs the initial DRUPAL- stripped out.
   git_log("FULL list of the project's branches: \n" . print_r($all_branches, TRUE), 'DEBUG', $project);
-  $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
   git_log("Branches in \$branches pre-transform: \n" . print_r($branches, TRUE), 'DEBUG', $project);
   $branchestmp = preg_replace(array_keys($trans_map), array_values($trans_map), $branches);
   git_log("Branches after first transform: \n" . print_r($branchestmp, TRUE), 'DEBUG', $project);
@@ -360,7 +367,6 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
 
   // Everything needs the initial DRUPAL- stripped out.
   git_log("FULL list of the project's tags: \n" . print_r($all_tags, TRUE), 'DEBUG', $project);
-  $trans_map = array_merge(array('/^DRUPAL-/' => ''), $trans_map);
   // Have to transform twice to discover tags already converted in previous runs
   git_log("Tags in \$tags pre-transform: \n" . print_r($tags, TRUE), 'DEBUG', $project);
   $tagstmp = preg_replace(array_keys($trans_map), array_values($trans_map), $tags);
