@@ -101,3 +101,57 @@ foreach ($projects as $project) {
 
 // Insert the record of the all the repos into vc_project's tracking table.
 $vc_project_insert->execute();
+
+
+// ------------------
+// Perform role & perm-related migration steps.
+db_insert('role')->fields(array('name'))
+  ->values(array('name' => 'Git administrator', 'name' => 'Git vetted user'))
+  ->execute();
+
+$git_admin_rid = db_result(db_query('SELECT rid FROM {role} WHERE name = "Git administrator"'));
+$git_vetted_rid = db_result(db_query('SELECT rid FROM {role} WHERE name = "Git vetted user"'));
+$git_user_rid = 20;
+$admin_rid = 3;
+$user_admin_rid = 7;
+
+// First do the new git perms.
+db_query('DELETE FROM {permission} WHERE rid IN (%d, %d, %d)', array($git_admin_rid, $git_vetted_rid, $git_user_rid));
+
+$perm_insert = db_insert('permission')->fields(array('rid, perm'));
+
+$git_perms = array(
+  $git_user_rid => array(
+    'opt-in or out of tracking', 'create images', 'edit own images', 'pift re-test files',
+    'use version control systems', 'create sandbox projects',
+  ),
+  $git_vetted_rid => array(
+    'create full projects',
+  ),
+  $git_admin_rid => array(
+    'access site-wide contact form', 'opt-in or out of tracking',
+    'administer projects', 'access administration pages', 'access site reports',
+    'administer version control systems', 'create full projects',
+  ),
+);
+
+foreach ($git_perms as $rid => $perms) {
+  $perm_insert->values(array(
+    'rid' => $rid,
+    'perm' => implode(', ', $perms),
+  ));
+}
+$perm_insert->execute();
+
+// Now update existing roles' perms as needed.
+$other_perms = array(
+  1 => ', view commitlog',
+  // FIXME take out use multiple emails once it's deployed on d.o, it'll already be set
+  2 => ', use multiple emails, manage own SSH public keys, view own SSH public keys, view commitlog',
+  $admin_rid => ', administer SSH public keys, manage any SSH public keys, view any SSH public keys, administer version control systems',
+  $user_admin_rid => ', manage any SSH public keys, view any SSH public keys',
+);
+
+foreach ($other_perms as $rid => $perms) {
+  db_query("UPDATE {permission} SET perm = CONCAT(perm, '%s') WHERE rid = %d", array($perms, $rid));
+}
