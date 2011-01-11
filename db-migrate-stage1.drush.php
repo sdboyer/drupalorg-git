@@ -146,8 +146,7 @@ $perm_insert->execute();
 // Now update existing roles' perms as needed.
 $other_perms = array(
   1 => ', view commitlog',
-  // FIXME take out use multiple emails once it's deployed on d.o, it'll already be set
-  2 => ', use multiple emails, manage own SSH public keys, view own SSH public keys, view commitlog',
+  2 => ', manage own SSH public keys, view own SSH public keys, view commitlog',
   $admin_rid => ', administer SSH public keys, manage any SSH public keys, view any SSH public keys, administer version control systems',
   $user_admin_rid => ', manage any SSH public keys, view any SSH public keys',
 );
