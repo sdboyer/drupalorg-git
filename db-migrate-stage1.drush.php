@@ -155,3 +155,14 @@ $other_perms = array(
 foreach ($other_perms as $rid => $perms) {
   db_query("UPDATE {permission} SET perm = CONCAT(perm, '%s') WHERE rid = %d", array($perms, $rid));
 }
+
+// Now translate exisitng users' perms, as appropriate.
+// Give all current CVS users the 'Git vetted user' role.
+db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 8", $git_vetted_rid);
+
+// Turn CVS administrators into Git administrators.
+db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 6", $git_admin_rid);
+
+// Get rid of the old CVS roles.
+db_query('DELETE FROM {role} WHERE rid IN (6, 8)');
+db_query('DELETE FROM {permission} WHERE rid IN (6, 8)');
