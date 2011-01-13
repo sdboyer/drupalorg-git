@@ -105,10 +105,10 @@ $vc_project_insert->execute();
 
 // ------------------
 // Perform role & perm-related migration steps.
-db_insert('role')->fields(array('name'))
-  ->values(array('name' => 'Git administrator'))
-  ->values(array('name' => 'Git vetted user'))
-  ->execute();
+$role_insert = db_insert('role')->fields(array('name'));
+$role_insert->values(array('name' => 'Git administrator'));
+$role_insert->values(array('name' => 'Git vetted user'));
+$role_insert->execute();
 
 $git_admin_rid = db_result(db_query("SELECT rid FROM {role} WHERE name = 'Git administrator'"));
 $git_vetted_rid = db_result(db_query("SELECT rid FROM {role} WHERE name = 'Git vetted user'"));
@@ -119,7 +119,7 @@ $user_admin_rid = 7;
 // First do the new git perms.
 db_query('DELETE FROM {permission} WHERE rid IN (%d, %d, %d)', array($git_admin_rid, $git_vetted_rid, $git_user_rid));
 
-$perm_insert = db_insert('permission')->fields(array('rid', 'perm'));
+$perm_insert = db_insert('permission')->fields(array('rid', 'perm', 'tid'));
 
 $git_perms = array(
   $git_user_rid => array(
@@ -140,6 +140,7 @@ foreach ($git_perms as $rid => $perms) {
   $perm_insert->values(array(
     'rid' => $rid,
     'perm' => implode(', ', $perms),
+    'tid' => 0,
   ));
 }
 $perm_insert->execute();
