@@ -38,14 +38,14 @@ $ignores = array(
 );
 
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
+// Ensure no stale data.
+db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
 
 while ($row = db_fetch_object($result)) {
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
 
   $release_query = db_query('SELECT prn.pid, prn.nid, prn.version, prn.tag, prn.version_extra, ct.branch FROM {project_release_nodes} AS prn LEFT JOIN {cvs_tags} AS ct ON prn.pid = ct.nid AND prn.tag = ct.tag WHERE prn.pid = %d', $row->nid);
-  // Ensure no stale data.
-  db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
@@ -56,7 +56,6 @@ while ($row = db_fetch_object($result)) {
   }
   // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags.
   $insert->execute();
-  unset($insert);
 }
 
 
