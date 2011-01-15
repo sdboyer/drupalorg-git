@@ -54,7 +54,9 @@ while ($row = db_fetch_object($result)) {
     }
     update_release($repo, $release_data, $row->nid == 3060 ? $rename_patterns['core'] : $rename_patterns['contrib'], $insert);
   }
+  // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags.
   $insert->execute();
+  unset($insert);
 }
 
 
@@ -94,10 +96,14 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
 
   // Update project release node listings
   db_query("UPDATE {project_release_nodes} SET tag = '%s', version = '%s' WHERE nid = %d", array($label->name, $release_data->nid));
-  // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags. REPLACE to make repetition easier.
-  $insert->values(array(
+
+  $values = array(
     'release_nid' => $release_data->nid,
     'label_id' => $label->label_id,
     'project_nid' => $release_data->pid,
-  ));
+  );
+
+  git_log("Enqueuing the following release data for insertion into {versioncontrol_release_labels}:\n" . print_r($values, TRUE), 'INFO', $repo->name);
+
+  $insert->values($values);
 }
