@@ -94,7 +94,7 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
   }
 
   // Update project release node listings
-  db_query("UPDATE {project_release_nodes} SET tag = '%s', version = '%s' WHERE nid = %d", array($label->name, $release_data->nid));
+  db_query("UPDATE {project_release_nodes} SET tag = '%s', version = '%s' WHERE nid = %d", array($label->name, $release_data->version, $release_data->nid));
 
   $values = array(
     'release_nid' => $release_data->nid,
