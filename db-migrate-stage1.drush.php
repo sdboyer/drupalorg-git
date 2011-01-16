@@ -78,7 +78,6 @@ foreach ($projects as $project) {
       'auth_handler' => 'account',
       'author_mapper' => 'drupalorg_mapper',
       'committer_mapper' => 'drupalorg_mapper',
-      'label_version_mapper' => 'drupalorg_git',
       'webviewer_url_handler' => 'drupalorg_gitweb',
     ),
   );
