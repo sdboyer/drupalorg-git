@@ -142,6 +142,14 @@ $git_perms = array(
   ),
 );
 
+$perm = db_result(db_query('SELECT perm FROM {permission} WHERE rid = 2'));
+$perm = explode(', ', $perm);
+// For some reason, auth users are getting the 'create full projects' permission. Crazy. Make sure they don't.
+if ($idx = array_search('create full projects', $perm)) {
+  unset($perm[$idx]);
+  db_query("UPDATE {permission} SET perm = '%s' WHERE rid = 2", implode(', ', $perm));
+}
+
 foreach ($git_perms as $rid => $perms) {
   $perm_insert->values(array(
     'rid' => $rid,
