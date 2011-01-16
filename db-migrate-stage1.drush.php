@@ -68,11 +68,18 @@ foreach ($projects as $project) {
     'name' => $name,
     'root' => '/var/git/stagingrepos/project/' . $name . '.git',
     'vcs' => 'git',
+    'data' => array(
+      // @TODO Update this with the correct URL for the repoviewer
+      // This is the URL used to build links to the repoviewer
+      'base_url' => 'http://git-dev.drupalcode.org/project',
+    ),
     'plugins' => array(
       // @TODO Update these with d.o specific plugins
       'auth_handler' => 'account',
       'author_mapper' => 'drupalorg_mapper',
       'committer_mapper' => 'drupalorg_mapper',
+      'label_version_mapper' => 'drupalorg_git',
+      'webviewer_url_handler' => 'drupalorg_gitweb',
     ),
   );
 
