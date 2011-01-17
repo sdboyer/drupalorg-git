@@ -32,7 +32,7 @@ for ($i = 0; $i < $proc_count; ++$i) {
     // Child
     $child_list = $chunks[$i];
     $chunk_count = (int) (count($child_list) / 3);
-    $child_chunks = empty($chunk_count) ? $child_list : array_chunk($child_list, $chunk_count);
+    $child_chunks = empty($chunk_count) ? array($child_list) : array_chunk($child_list, $chunk_count);
     foreach ($child_chunks as $chunk) {
       $repos = implode(',', $chunk);
       passthru(escapeshellcmd($drush . ' vcapi-parse-logs ' . escapeshellarg($repos)));
