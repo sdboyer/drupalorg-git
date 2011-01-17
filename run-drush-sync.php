@@ -7,7 +7,7 @@ $raw_dirs = glob('/var/git/stagingrepos/project/*.git');
 $dirs = preg_replace('#^/var/git/stagingrepos/project/(.*)\.git$#', '\1', $raw_dirs);
 
 // Pull out the biggest ones to run in just one process, keep things more even
-$biggies = array('drupal', 'ecommerce', 'views');
+$biggies = array('drupal');
 $dirs = array_diff($dirs, $biggies);
 
 $dirs_num = count($dirs);
