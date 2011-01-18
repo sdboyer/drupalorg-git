@@ -111,14 +111,10 @@ $vc_project_insert->execute();
 
 // ------------------
 // Perform role & perm-related migration steps.
-$role_insert = db_insert('role')->fields(array('name'));
-$role_insert->values(array('name' => 'Git administrator'));
-$role_insert->values(array('name' => 'Git vetted user'));
-$role_insert->execute();
 
-$git_admin_rid = db_result(db_query("SELECT rid FROM {role} WHERE name = 'Git administrator'"));
-$git_vetted_rid = db_result(db_query("SELECT rid FROM {role} WHERE name = 'Git vetted user'"));
-$git_user_rid = 20;
+$git_admin_rid = DRUPALORG_GIT_GATEWAY_ADMIN_RID;
+$git_vetted_rid = DRUPALORG_GIT_GATEWAY_VETTED_RID;
+$git_user_rid = DRUPALORG_GIT_GATEWAY_RID;
 $admin_rid = 3;
 $user_admin_rid = 7;
 
