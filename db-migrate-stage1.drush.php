@@ -71,7 +71,7 @@ foreach ($projects as $project) {
     'data' => array(
       // @TODO Update this with the correct URL for the repoviewer
       // This is the URL used to build links to the repoviewer
-      'base_url' => 'http://git-dev.drupalcode.org/project',
+      'webviewer_base_url' => 'http://git-dev.drupalcode.org/project',
     ),
     'plugins' => array(
       // @TODO Update these with d.o specific plugins
