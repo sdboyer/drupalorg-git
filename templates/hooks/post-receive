@@ -9,7 +9,7 @@ $git_hook_error_log = '/tmp/drupal.git.repo.parsing.log';
 
 // Queues we want to send this data to.
 $queues = array(
-  'versioncontrol-git-repo-parsing' => array(
+  'versioncontrol_git_repo_parsing' => array(
     'beanstalkd host' => 'localhost',
     'beanstalkd port' => 11300,
   ),
