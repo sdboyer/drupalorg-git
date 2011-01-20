@@ -5,7 +5,7 @@
 require_once 'pheanstalk/pheanstalk_init.php';
 
 // Path to error log.
-$git_hook_error_log = '';
+$git_hook_error_log = '/tmp/drupal.git.repo.parsing.log';
 
 // Queues we want to send this data to.
 $queues = array(
