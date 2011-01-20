@@ -162,7 +162,7 @@ function git_log($message, $level = 'NORMAL', $project = NULL) {
  * Helper function to import a directory to a git repository.
  */
 function import_directory($config, $root, $source, $destination, $wipe = FALSE) {
-  global $rename_patterns;
+  global $rename_patterns, $wd;
   $absolute_source_dir = $root . '/' . $source;
   $elements = explode('/', $source);
   $project = array_pop($elements);
@@ -218,7 +218,7 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
 
   // Load the data into git.
   git_log("Importing project data into Git.", 'DEBUG', $source);
-  git_invoke('git init', FALSE, $destination);
+  git_invoke('git init --template=' . dirname(__FILE__) . '/templates', FALSE, $destination);
   try {
     git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination);
   }
