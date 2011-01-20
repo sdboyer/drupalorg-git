@@ -1,0 +1,45 @@
+#! /usr/bin/php
+<?php
+
+// We're assuming the pheanstalk library lives in php's include_path.
+require_once 'pheanstalk/pheanstalk_init.php';
+
+// Path to error log.
+$git_hook_error_log = '';
+
+// Queues we want to send this data to.
+$queues = array(
+  'versioncontrol-git-repo-parsing' => array(
+    'beanstalkd host' => 'localhost',
+    'beanstalkd port' => 11300,
+  ),
+);
+
+$stdin = fopen('php://stdin', 'r');
+$data = array(
+  'username' => getenv('VERSION_CONTROL_GIT_USERNAME'),
+  'repository' => getenv('VERSION_CONTROL_GIT_REPOSITORY'),
+  'git hook' => 'post-receive',
+  'data' => stream_get_contents($stdin),
+  'timestamp' => time(),
+);
+fclose($stdin);
+
+foreach ($queues as $queue_name => $info) {
+  try {
+    $pheanstalk = new Pheanstalk($info['beanstalkd host'], $info['beanstalkd port']);
+    // Build a stdClass item wrapper to make beanstalkd.module happy
+    $item = new stdClass();
+    $item->name = $queue_name;
+    $item->data = $data;
+    $pheanstalk->useTube($queue_name);
+    $pheanstalk->put(serialize($item));
+  }
+  catch (Exception $e) {
+    if (file_exists($git_hook_error_log) && is_writable($git_hook_error_log)) {
+      $message = date('Y-m-d:H-i-s') . ": Git 'post-recieve' error, queue '$queue_name': " . $e->getMessage() . print_r($data, TRUE);
+      file_put_contents($git_hook_error_log, $message, FILE_APPEND);
+    }
+  }
+}
+
