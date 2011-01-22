@@ -178,3 +178,25 @@ db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 6", $git_admin_rid);
 // Get rid of the old CVS roles.
 db_query('DELETE FROM {role} WHERE rid IN (6, 8)');
 db_query('DELETE FROM {permission} WHERE rid IN (6, 8)');
+
+
+// ------------------
+/* Transfer CVS usernames over to the new Git username system. */
+
+// Grab all cvs account names from existing approved account list.
+$result = db_select('cvs_accounts', 'ca')->fields('ca', array('uid', 'cvs_user'))
+  ->condition('status', 1)
+  ->distinct()
+  ->execute();
+
+// Handle requested alternate usernames from users.
+$exceptions = array(
+  62496   => 'mikey_p',
+  926382  => 'JoshTheGeek',
+);
+
+foreach($result as $record) {
+  $git_username = empty($exceptions[$record->uid]) ? $record->cvs_user : $exceptions[$record->uid];
+  db_update('users')->fields(array('git_username' => $git_username))
+    ->condition('uid', $record->uid)->execute();
+}
