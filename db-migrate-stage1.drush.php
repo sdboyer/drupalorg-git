@@ -68,11 +68,17 @@ foreach ($projects as $project) {
     'name' => $name,
     'root' => '/var/git/stagingrepos/project/' . $name . '.git',
     'vcs' => 'git',
+    'data' => array(
+      // @TODO Update this with the correct URL for the repoviewer
+      // This is the URL used to build links to the repoviewer
+      'webviewer_base_url' => 'http://git-dev.drupalcode.org/project',
+    ),
     'plugins' => array(
       // @TODO Update these with d.o specific plugins
       'auth_handler' => 'account',
       'author_mapper' => 'drupalorg_mapper',
       'committer_mapper' => 'drupalorg_mapper',
+      'webviewer_url_handler' => 'drupalorg_gitweb',
     ),
   );
 
@@ -105,20 +111,17 @@ $vc_project_insert->execute();
 
 // ------------------
 // Perform role & perm-related migration steps.
-db_insert('role')->fields(array('name'))
-  ->values(array('name' => 'Git administrator', 'name' => 'Git vetted user'))
-  ->execute();
 
-$git_admin_rid = db_result(db_query('SELECT rid FROM {role} WHERE name = "Git administrator"'));
-$git_vetted_rid = db_result(db_query('SELECT rid FROM {role} WHERE name = "Git vetted user"'));
-$git_user_rid = 20;
+$git_admin_rid = DRUPALORG_GIT_GATEWAY_ADMIN_RID;
+$git_vetted_rid = DRUPALORG_GIT_GATEWAY_VETTED_RID;
+$git_user_rid = DRUPALORG_GIT_GATEWAY_RID;
 $admin_rid = 3;
 $user_admin_rid = 7;
 
 // First do the new git perms.
 db_query('DELETE FROM {permission} WHERE rid IN (%d, %d, %d)', array($git_admin_rid, $git_vetted_rid, $git_user_rid));
 
-$perm_insert = db_insert('permission')->fields(array('rid, perm'));
+$perm_insert = db_insert('permission')->fields(array('rid', 'perm', 'tid'));
 
 $git_perms = array(
   $git_user_rid => array(
@@ -135,22 +138,64 @@ $git_perms = array(
   ),
 );
 
+$perm = db_result(db_query('SELECT perm FROM {permission} WHERE rid = 2'));
+$perm = explode(', ', $perm);
+// For some reason, auth users are getting the 'create full projects' permission. Crazy. Make sure they don't.
+if ($idx = array_search('create full projects', $perm)) {
+  unset($perm[$idx]);
+  db_query("UPDATE {permission} SET perm = '%s' WHERE rid = 2", implode(', ', $perm));
+}
+
 foreach ($git_perms as $rid => $perms) {
   $perm_insert->values(array(
     'rid' => $rid,
     'perm' => implode(', ', $perms),
+    'tid' => 0,
   ));
 }
 $perm_insert->execute();
 
 // Now update existing roles' perms as needed.
 $other_perms = array(
-  1 => ', view commitlog',
-  2 => ', manage own SSH public keys, view own SSH public keys, view commitlog',
+  1 => ', access commit messages',
+  2 => ', manage own SSH public keys, view own SSH public keys, access commit messages',
   $admin_rid => ', administer SSH public keys, manage any SSH public keys, view any SSH public keys, administer version control systems',
   $user_admin_rid => ', manage any SSH public keys, view any SSH public keys',
 );
 
 foreach ($other_perms as $rid => $perms) {
   db_query("UPDATE {permission} SET perm = CONCAT(perm, '%s') WHERE rid = %d", array($perms, $rid));
+}
+
+// Now translate exisitng users' perms, as appropriate.
+// Give all current CVS users the 'Git vetted user' role.
+db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 8", $git_vetted_rid);
+
+// Turn CVS administrators into Git administrators.
+db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 6", $git_admin_rid);
+
+// Get rid of the old CVS roles.
+db_query('DELETE FROM {role} WHERE rid IN (6, 8)');
+db_query('DELETE FROM {permission} WHERE rid IN (6, 8)');
+
+
+// ------------------
+/* Transfer CVS usernames over to the new Git username system. */
+
+// Grab all cvs account names from existing approved account list.
+$result = db_select('cvs_accounts', 'ca')->fields('ca', array('uid', 'cvs_user'))
+  ->condition('status', 1)
+  ->distinct()
+  ->execute();
+
+// Handle requested alternate usernames from users.
+$exceptions = array(
+  62496   => 'mikey_p',
+  926382  => 'JoshTheGeek',
+);
+
+foreach($result as $record) {
+  $git_username = empty($exceptions[$record->uid]) ? $record->cvs_user : $exceptions[$record->uid];
+  db_update('users')->fields(array('git_username' => $git_username))
+    ->condition('uid', $record->uid)->execute();
 }

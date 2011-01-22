@@ -38,14 +38,14 @@ $ignores = array(
 );
 
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
+// Ensure no stale data.
+db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
 
 while ($row = db_fetch_object($result)) {
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
 
   $release_query = db_query('SELECT prn.pid, prn.nid, prn.version, prn.tag, prn.version_extra, ct.branch FROM {project_release_nodes} AS prn LEFT JOIN {cvs_tags} AS ct ON prn.pid = ct.nid AND prn.tag = ct.tag WHERE prn.pid = %d', $row->nid);
-  // Ensure no stale data.
-  db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
@@ -54,6 +54,7 @@ while ($row = db_fetch_object($result)) {
     }
     update_release($repo, $release_data, $row->nid == 3060 ? $rename_patterns['core'] : $rename_patterns['contrib'], $insert);
   }
+  // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags.
   $insert->execute();
 }
 
@@ -93,11 +94,15 @@ function update_release(VersioncontrolGitRepository $repo, $release_data, $patte
   }
 
   // Update project release node listings
-  db_query("UPDATE {project_release_nodes} SET tag = '%s', version = '%s' WHERE nid = %d", array($label->name, $release_data->nid));
-  // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags. REPLACE to make repetition easier.
-  $insert->values(array(
+  db_query("UPDATE {project_release_nodes} SET tag = '%s', version = '%s' WHERE nid = %d", array($label->name, $release_data->version, $release_data->nid));
+
+  $values = array(
     'release_nid' => $release_data->nid,
     'label_id' => $label->label_id,
     'project_nid' => $release_data->pid,
-  ));
+  );
+
+  git_log("Enqueuing the following release data for insertion into {versioncontrol_release_labels}:\n" . print_r($values, TRUE), 'INFO', $repo->name);
+
+  $insert->values($values);
 }
