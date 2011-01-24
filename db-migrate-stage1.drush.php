@@ -190,6 +190,17 @@ $result = db_select('cvs_accounts', 'ca')->fields('ca', array('uid', 'cvs_user')
 $exceptions = array(
   62496   => 'mikey_p',
   926382  => 'JoshTheGeek',
+  920 => 'betarobot',
+  384214 => 'nschloe',
+  35369 => 'svendecabooter',
+  16327 => 'instanceofjamie',
+  80656 => 'nunoveloso',
+  32793 => 'mo6',
+  250828 => 'john.karahalis',
+  123980 => 'bradweikel',
+  25564 => 'twom',
+  270434 => 'babbage',
+  4299 => 'rayero',
 );
 
 foreach($result as $record) {
