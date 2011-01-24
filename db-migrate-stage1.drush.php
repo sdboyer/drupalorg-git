@@ -105,6 +105,7 @@ $vc_project_insert->execute();
 
 // Set the default base url for the git webviewer. Not in settings.php because we may need to tweak this.
 variable_set('versioncontrol_repository_git_base_url_gitweb_rewrite', 'http://git-dev.drupalcode.org/project');
+variable_set('versioncontrol_repository_plugin_default_webviewer_url_handlers', 'gitweb_rewrite');
 
 // ------------------
 // Perform role & perm-related migration steps.
