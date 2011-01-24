@@ -68,17 +68,12 @@ foreach ($projects as $project) {
     'name' => $name,
     'root' => '/var/git/stagingrepos/project/' . $name . '.git',
     'vcs' => 'git',
-    'data' => array(
-      // @TODO Update this with the correct URL for the repoviewer
-      // This is the URL used to build links to the repoviewer
-      'webviewer_base_url' => 'http://git-dev.drupalcode.org/project',
-    ),
     'plugins' => array(
       // @TODO Update these with d.o specific plugins
       'auth_handler' => 'account',
       'author_mapper' => 'drupalorg_mapper',
       'committer_mapper' => 'drupalorg_mapper',
-      'webviewer_url_handler' => 'drupalorg_gitweb',
+      'webviewer_url_handler' => 'gitweb_rewrite',
     ),
   );
 
@@ -108,6 +103,8 @@ foreach ($projects as $project) {
 // Insert the record of the all the repos into vc_project's tracking table.
 $vc_project_insert->execute();
 
+// Set the default base url for the git webviewer. Not in settings.php because we may need to tweak this.
+variable_set('versioncontrol_repository_git_base_url_gitweb_rewrite', 'http://git-dev.drupalcode.org/project');
 
 // ------------------
 // Perform role & perm-related migration steps.
