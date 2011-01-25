@@ -73,7 +73,6 @@ foreach ($projects as $project) {
       'auth_handler' => 'account',
       'author_mapper' => 'drupalorg_mapper',
       'committer_mapper' => 'drupalorg_mapper',
-      'webviewer_url_handler' => 'gitweb_rewrite',
     ),
   );
 
@@ -102,10 +101,6 @@ foreach ($projects as $project) {
 
 // Insert the record of the all the repos into vc_project's tracking table.
 $vc_project_insert->execute();
-
-// Set the default base url for the git webviewer. Not in settings.php because we may need to tweak this.
-variable_set('versioncontrol_repository_git_base_url_gitweb_rewrite', 'http://git-dev.drupalcode.org/project');
-variable_set('versioncontrol_repository_plugin_default_webviewer_url_handler', 'gitweb_rewrite');
 
 // ------------------
 // Perform role & perm-related migration steps.
