@@ -161,8 +161,9 @@ foreach ($other_perms as $rid => $perms) {
 }
 
 // Now translate exisitng users' perms, as appropriate.
-// Give all current CVS users the 'Git vetted user' role.
-db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 8", $git_vetted_rid);
+// Give all current CVS users the 'Git vetted user' role. Unfortunately, the 'CVS users' role is unreliable.
+db_query("DELETE FROM {users_roles} WHERE rid = 8", $git_vetted_rid);
+db_query('INSERT INTO {users_roles} (uid, rid) SELECT uid, %d FROM cvs_accounts WHERE status = 1 ON DUPLICATE KEY UPDATE rid=rid', DRUPALORG_GIT_GATEWAY_VETTED_RID);
 
 // Turn CVS administrators into Git administrators.
 db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 6", $git_admin_rid);
