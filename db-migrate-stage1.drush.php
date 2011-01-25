@@ -73,7 +73,6 @@ foreach ($projects as $project) {
       'auth_handler' => 'account',
       'author_mapper' => 'drupalorg_mapper',
       'committer_mapper' => 'drupalorg_mapper',
-      'webviewer_url_handler' => 'gitweb_rewrite',
     ),
   );
 
@@ -102,10 +101,6 @@ foreach ($projects as $project) {
 
 // Insert the record of the all the repos into vc_project's tracking table.
 $vc_project_insert->execute();
-
-// Set the default base url for the git webviewer. Not in settings.php because we may need to tweak this.
-variable_set('versioncontrol_repository_git_base_url_gitweb_rewrite', 'http://git-dev.drupalcode.org/project');
-variable_set('versioncontrol_repository_plugin_default_webviewer_url_handler', 'gitweb_rewrite');
 
 // ------------------
 // Perform role & perm-related migration steps.
@@ -166,8 +161,9 @@ foreach ($other_perms as $rid => $perms) {
 }
 
 // Now translate exisitng users' perms, as appropriate.
-// Give all current CVS users the 'Git vetted user' role.
-db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 8", $git_vetted_rid);
+// Give all current CVS users the 'Git vetted user' role. Unfortunately, the 'CVS users' role is unreliable.
+db_query("DELETE FROM {users_roles} WHERE rid = 8", $git_vetted_rid);
+db_query('INSERT INTO {users_roles} (uid, rid) SELECT uid, %d FROM cvs_accounts WHERE status = 1 ON DUPLICATE KEY UPDATE rid=rid', DRUPALORG_GIT_GATEWAY_VETTED_RID);
 
 // Turn CVS administrators into Git administrators.
 db_query("UPDATE {users_roles} SET rid = %d WHERE rid = 6", $git_admin_rid);
