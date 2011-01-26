@@ -5,7 +5,7 @@
 require_once 'pheanstalk/pheanstalk_init.php';
 
 // Path to error log.
-$git_hook_error_log = '/tmp/drupal.git.repo.parsing.log';
+$git_hook_error_log = '';
 
 // Queues we want to send this data to.
 $queues = array(
@@ -17,8 +17,8 @@ $queues = array(
 
 $stdin = fopen('php://stdin', 'r');
 $data = array(
-  'username' => getenv('VERSION_CONTROL_GIT_USERNAME'),
-  'repository' => getenv('VERSION_CONTROL_GIT_REPOSITORY'),
+  'uid' => getenv('VERSION_CONTROL_GIT_UID'),
+  'repo_id' => getenv('VERSION_CONTROL_GIT_REPO_ID'),
   'git hook' => 'post-receive',
   'data' => stream_get_contents($stdin),
   'timestamp' => time(),
