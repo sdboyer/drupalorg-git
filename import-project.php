@@ -54,7 +54,7 @@ file_put_contents('./cvs2git.options', strtr(file_get_contents($config_template)
 // Start the import process.
 git_log("Generating the fast-import dump files.", 'DEBUG', $source_dir);
 try {
-  git_invoke('cvs2git --options=./cvs2git.options');
+  git_invoke(escapeshellarg(CVS2GIT) . ' --options=./cvs2git.options');
 }
 catch (Exception $e) {
   git_log("cvs2git failed with error '$e'. Terminating import.", 'WARN', $source_dir);

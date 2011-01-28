@@ -12,6 +12,17 @@ if (!defined('LOGLEVEL')) {
   }
 }
 
+if (!defined('CVS2GIT')) {
+  $c2g = getenv('CVS2GIT');
+  if (is_string($level)) {
+    define('CVS2GIT', $c2g);
+  }
+  else {
+    // Or default to 'cvs2git', so whatever's on the PATH
+    define('CVS2GIT', 'cvs2git');
+  }
+}
+
 function git_invoke($command, $fail_safe = FALSE, $repository_path = NULL, $env = NULL) {
   if (!isset($env)) {
     $env = $_ENV;
