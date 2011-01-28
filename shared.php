@@ -12,6 +12,17 @@ if (!defined('LOGLEVEL')) {
   }
 }
 
+if (!defined('CVS2GIT')) {
+  $c2g = getenv('CVS2GIT');
+  if (is_string($level)) {
+    define('CVS2GIT', $c2g);
+  }
+  else {
+    // Or default to 'cvs2git', so whatever's on the PATH
+    define('CVS2GIT', 'cvs2git');
+  }
+}
+
 global $rename_patterns;
 
 $rename_patterns = array(
@@ -209,7 +220,7 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
   // Start the import process.
   git_log("Generating the fast-import dump files.", 'DEBUG', $source);
   try {
-    git_invoke('cvs2git --options=./cvs2git.options');
+    git_invoke(escapeshellarg(CVS2GIT) . ' --options=./cvs2git.options');
   }
   catch (Exception $e) {
     git_log("cvs2git failed with error '$e'. Terminating import.", 'WARN', $source);
