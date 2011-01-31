@@ -53,7 +53,7 @@ function strip_cvs_keywords($project, $directory) {
 
   passthru('./strip-cvs-keywords.py ' . escapeshellarg($directory));
 
-  $commit_message = escapeshellarg("Striping CVS keywords from $project");
+  $commit_message = escapeshellarg("Stripping CVS keywords from $project");
   if (git_invoke('git status -s', TRUE, "$directory/.git", $directory)) {
     git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
   }
