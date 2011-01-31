@@ -70,6 +70,6 @@ function kill_translations($project, $directory) {
   $commit_message = escapeshellarg("Removing translation directories from $project");
   foreach ($directories as $dir) {
     git_invoke("git rm -r $dir", FALSE, "$directory/.git", $directory);
-    git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
-  }    
+  }
+  git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
 }
