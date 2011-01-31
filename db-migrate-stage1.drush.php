@@ -74,6 +74,7 @@ foreach ($projects as $project) {
       'author_mapper' => 'drupalorg_mapper',
       'committer_mapper' => 'drupalorg_mapper',
     ),
+    'update_method' => 1,
   );
 
   // Build & insert the repo
