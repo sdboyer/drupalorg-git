@@ -30,7 +30,7 @@ foreach($all_branches as $name) {
     git_invoke("git checkout $name", FALSE, "$temp_dir/.git", $temp_dir);
   }
   try {
-    strip_cvs_keywords($project, $temp_dir);
+    //strip_cvs_keywords($project, $temp_dir);
   }
   catch (exception $e) {
     git_log("CVS tag removal for branch $name failed with error '$e'", 'WARN', $project);
