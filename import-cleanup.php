@@ -30,7 +30,7 @@ foreach($all_branches as $name) {
     git_invoke("git checkout $name", FALSE, "$temp_dir/.git", $temp_dir);
   }
   try {
-    //strip_cvs_keywords($project, $temp_dir);
+    strip_cvs_keywords($project, $temp_dir);
   }
   catch (exception $e) {
     git_log("CVS tag removal for branch $name failed with error '$e'", 'WARN', $project);
@@ -54,7 +54,7 @@ function strip_cvs_keywords($project, $directory) {
   passthru('./strip-cvs-keywords.py ' . escapeshellarg($directory));
 
   $commit_message = escapeshellarg("Stripping CVS keywords from $project");
-  if (git_invoke('git status -s', TRUE, "$directory/.git", $directory)) {
+  if (git_invoke('git status --untracked-files=no -sz --', TRUE, "$directory/.git", $directory)) {
     git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
   }
 }
