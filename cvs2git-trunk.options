@@ -483,7 +483,7 @@ ctx.cross_branch_commits = False
 # .gitignore files, so by default, the .cvsignore files are included
 # in the conversion output.  If you would like to omit the .cvsignore
 # files from the output, set this option to False:
-ctx.keep_cvsignore = True
+ctx.keep_cvsignore = False
 
 # By default, it is a fatal error for a CVS ",v" file to appear both
 # inside and outside of an "Attic" subdirectory (this should never
