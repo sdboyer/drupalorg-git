@@ -220,8 +220,8 @@ ctx.initial_project_commit_message = (
 # of the revision that included the change to the vendor branch
 # (admittedly rather pointless in a cvs2git conversion).
 ctx.post_commit_message = (
-    'This commit was generated as part of Drupal\'s Great Git Migration to track changes on a CVS '
-    'vendor branch.'
+    'This commit was generated as part of Drupal\'s Great Git '
+    'Migration to track changes on a CVS vendor branch.'
     )
 
 # Template for the commit message to be used for commits in which
@@ -229,8 +229,8 @@ ctx.post_commit_message = (
 # include the type of the symbol ('branch' or 'tag') or
 # '%(symbol_name)s' to include the name of the symbol.
 ctx.symbol_commit_message = (
-    "This commit was manufactured as part of Drupal's Great Git Migration to create %(symbol_type)s "
-    "'%(symbol_name)s'."
+    "This commit was manufactured as part of Drupal's Great Git "
+    "Migration to create %(symbol_type)s '%(symbol_name)s'."
     )
 
 # Template for the commit message to be used for commits in which
