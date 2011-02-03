@@ -67,9 +67,11 @@ function kill_translations($project, $directory) {
   $po = array_filter(explode("\n", $directories)); // array-ify & remove empties
 
   $directories = array_merge($translations, $po);
-  $commit_message = escapeshellarg("Removing translation directories from $project");
-  foreach ($directories as $dir) {
-    git_invoke("git rm -r $dir", FALSE, "$directory/.git", $directory);
+  if (!empty($directories)) {
+    $commit_message = escapeshellarg("Removing translation directories from $project");
+    foreach ($directories as $dir) {
+      git_invoke("git rm -r $dir", FALSE, "$directory/.git", $directory);
+    }
+    git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
   }
-  git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
 }
