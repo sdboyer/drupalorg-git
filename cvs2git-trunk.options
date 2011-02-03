@@ -239,8 +239,9 @@ ctx.symbol_commit_message = (
 # (Not used by default unless you enable tie_tag_fixup_branches on
 # GitOutputOption.)
 ctx.tie_tag_ancestry_message = (
-    "This commit was manufactured as part of Drupal's Great Git Migration to tie ancestry for "
-    "tag '%(symbol_name)s' back to the source branch."
+    "This commit was manufactured as part of Drupal's Great Git "
+    "Migration to tie ancestry for tag '%(symbol_name)s' back to the "
+    "source branch."
     )
 
 # Some CVS clients for MacOS store resource fork data into CVS along
