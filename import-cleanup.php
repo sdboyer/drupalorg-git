@@ -1,5 +1,9 @@
 #!/usr/bin/php
 <?php
+/**
+ * @file
+ * Strip translations and keywords from a project.
+ */
 
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
