@@ -5,6 +5,12 @@
  * Strip translations and keywords from a project.
  */
 
+// Make sure we get a git directory to cleanup.
+if (count($argv) == 1) {
+  echo "Cleanup script not passed a directory\n";
+  exit(1);
+}
+
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
