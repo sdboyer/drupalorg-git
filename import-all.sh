@@ -12,18 +12,22 @@ fi
 if [ ! $C2G_PHP ]; then
     C2G_PHP="/usr/bin/php"
 fi
+if [ ! $C2G_CVS2GIT_OPTIONS]; then
+    C2G_CVS2GIT_OPTIONS="./cvs2git-trunk.options"
+fi
+
 
 mkdir -p $C2G_DESTINATION/project
 
 # do special-case handling for docs, tricks, and finally core. Do these first in the background because they take a while.
-$C2G_PHP import-project.php ./cvs2git.options $C2G_REPOSITORY contributions/docs $C2G_DESTINATION/project/docs.git &
-$C2G_PHP import-project.php ./cvs2git.options $C2G_REPOSITORY contributions/tricks $C2G_DESTINATION/project/tricks.git &
-$C2G_PHP import-project.php ./cvs2git.options $C2G_REPOSITORY drupal $C2G_DESTINATION/project/drupal.git &
+$C2G_PHP import-project.php $C2G_CVS2GIT_OPTIONS $C2G_REPOSITORY contributions/docs $C2G_DESTINATION/project/docs.git &
+$C2G_PHP import-project.php $C2G_CVS2GIT_OPTIONS $C2G_REPOSITORY contributions/tricks $C2G_DESTINATION/project/tricks.git &
+$C2G_PHP import-project.php $C2G_CVS2GIT_OPTIONS $C2G_REPOSITORY drupal $C2G_DESTINATION/project/drupal.git &
 
 # migrate all the parent dirs for which each child receives a repo in the shared, top-level namespace (project)
 for TYPE in modules themes theme-engines profiles; do
     PREFIX="contributions/$TYPE"
-    find $C2G_REPOSITORY/$PREFIX/ -mindepth 1 -maxdepth 1 -type d -not -empty | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $C2G_CONCURRENCY -I% sh -c "$C2G_PHP import-project.php ./cvs2git.options $C2G_REPOSITORY $PREFIX/% $C2G_DESTINATION/project/%.git"
+    find $C2G_REPOSITORY/$PREFIX/ -mindepth 1 -maxdepth 1 -type d -not -empty | xargs -I% basename % | egrep -v "Attic" | xargs --max-proc $C2G_CONCURRENCY -I% sh -c "$C2G_PHP import-project.php $C2G_CVS2GIT_OPTIONS $C2G_REPOSITORY $PREFIX/% $C2G_DESTINATION/project/%.git"
 done
 
 if [ "$FINAL_CLEANUP " != " " ]; then
