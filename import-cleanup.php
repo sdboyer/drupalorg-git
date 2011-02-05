@@ -5,8 +5,10 @@
  * Strip translations and keywords from a project.
  */
 
+$options = getopt('ktd:');
+
 // Make sure we get a git directory to cleanup.
-if (count($argv) == 1) {
+if (empty($options['d'])) {
   echo "Cleanup script not passed a directory\n";
   exit(1);
 }
@@ -16,6 +18,11 @@ require_once dirname(__FILE__) . '/shared.php';
 
 $destination_dir = realpath($argv[1]);
 $project = basename($destination_dir);
+
+// Core is different. We can't strip translations from it.
+if ($project == 'drupal.git') {
+  unset($options['t']);
+}
 
 // Create a temporary directory, and register a clean up.
 $cmd = 'mktemp -dt cvs2git-import-' . escapeshellarg($project) . '.XXXXXXXXXX';
@@ -39,19 +46,23 @@ foreach($all_branches as $name) {
   else {
     git_invoke("git checkout $name", FALSE, "$temp_dir/.git", $temp_dir);
   }
-  try {
-    strip_cvs_keywords($project, $temp_dir);
-  }
-  catch (exception $e) {
-    git_log("CVS tag removal for branch $name failed with error '$e'", 'WARN', $project);
-  }
-  try {
-    if ($project != 'drupal.git') {
-      kill_translations($project, $temp_dir);
+  // If needed, cleanup keywords.
+  if (isset($options['k'])) {
+    try {
+      strip_cvs_keywords($project, $temp_dir);
+    }
+    catch (exception $e) {
+      git_log("CVS tag removal for branch $name failed with error '$e'", 'WARN', $project);
     }
   }
-  catch (exception $e) {
-    git_log("Translation removal for branch $name failed with error '$e'", 'WARN', $project);
+  // If needed, cleanup translations.
+  if (isset($options['t'])) {
+    try {
+      kill_translations($project, $temp_dir);
+    }
+    catch (exception $e) {
+      git_log("Translation removal for branch $name failed with error '$e'", 'WARN', $project);
+    }
   }
 }
 
