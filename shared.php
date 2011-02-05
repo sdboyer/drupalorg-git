@@ -14,7 +14,7 @@ if (!defined('LOGLEVEL')) {
 
 if (!defined('CVS2GIT')) {
   $c2g = getenv('CVS2GIT');
-  if (is_string($level)) {
+  if (is_string($c2g)) {
     define('CVS2GIT', $c2g);
   }
   else {
