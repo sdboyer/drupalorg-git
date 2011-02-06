@@ -31,5 +31,5 @@ for TYPE in modules themes theme-engines profiles; do
 done
 
 if [ "$FINAL_CLEANUP " != " " ]; then
-    find $C2G_DESTINATION/project -mindepth 1 -maxdepth 1 -type d -not -empty | xargs --max-proc $C2G_CONCURRENCY -I% sh -c "$C2G_PHP import-cleanup.php %"
+    find $C2G_DESTINATION/project -mindepth 1 -maxdepth 1 -type d -not -empty | xargs --max-proc $C2G_CONCURRENCY -I% sh -c "$C2G_PHP import-cleanup.php -k -t -d %"
 fi
