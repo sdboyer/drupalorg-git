@@ -14,7 +14,7 @@ if (!defined('LOGLEVEL')) {
 
 if (!defined('CVS2GIT')) {
   $c2g = getenv('CVS2GIT');
-  if (is_string($level)) {
+  if (is_string($c2g)) {
     define('CVS2GIT', $c2g);
   }
   else {
@@ -229,7 +229,7 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
 
   // Load the data into git.
   git_log("Importing project data into Git.", 'DEBUG', $source);
-  git_invoke('git init --template=' . dirname(__FILE__) . '/templates', FALSE, $destination);
+  git_invoke('git init --template="' . dirname(__FILE__) . '/templates"', FALSE, $destination);
   try {
     git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination);
   }

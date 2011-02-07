@@ -16,7 +16,7 @@ if (empty($options['d'])) {
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
-$destination_dir = realpath($argv[1]);
+$destination_dir = realpath($options['d']);
 $project = basename($destination_dir);
 
 // Core is different. We can't strip translations from it.
