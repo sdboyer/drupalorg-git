@@ -114,6 +114,7 @@ $user_admin_rid = 7;
 
 // First do the new git perms.
 db_query('DELETE FROM {permission} WHERE rid IN (%d, %d, %d)', array($git_admin_rid, $git_vetted_rid, $git_user_rid));
+db_query('DELETE FROM {users_roles} WHERE rid IN (%d, %d, %d) AND uid NOT IN (%d, %d, %d)', array($git_admin_rid, $git_vetted_rid, $git_user_rid, 1118416, 1118412, 1123222));
 
 $perm_insert = db_insert('permission')->fields(array('rid', 'perm', 'tid'));
 
