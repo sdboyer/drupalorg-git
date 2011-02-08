@@ -272,6 +272,8 @@ $exceptions = array(
   44114 => 'liquidcms',
   103709 => 'nvoyageur',
   76033 => 'gazwal',
+  37266 => 'geodaniel',
+  297478 => 'coderintherye',
 );
 
 foreach($result as $record) {
