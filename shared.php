@@ -34,6 +34,8 @@ $rename_patterns = array(
       '/^(\d)-(\d)$/' => '\1.\2.x',
       // And another for D5 and later
       '/^(\d)$/' => '\1.x',
+      // Plus one for the weird, weird security syntax
+      '/^(\d)-(\d+)-SECURITY$/' => '\1.x-\2-security',
     ),
     'tags' => array(
       // Strip DRUPAL- prefix.
@@ -55,6 +57,8 @@ $rename_patterns = array(
       '/^(\d)-(\d)--(\d+)$/' => '\1.\2.x-\3.x',
       // And another for D5 and later
       '/^(\d)--(\d+)$/' => '\1.x-\2.x',
+      // Plus one for the weird, weird security syntax
+      '/^(\d)--(\d+)-(\d+)-SECURITY$/' => '\1.x-\2.\3-security',
     ),
     'tags' => array(
       // Strip DRUPAL- prefix.
