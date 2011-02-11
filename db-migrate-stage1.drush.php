@@ -274,6 +274,17 @@ $exceptions = array(
   76033 => 'gazwal',
   37266 => 'geodaniel',
   297478 => 'coderintherye',
+  259320 => 'darrenmothersele',
+  665088 => 'tsitaru',
+  23728 => 'Sweetchuck',
+  37031 => 'dropcube',
+  103458 => 'socki',
+  66163 => 'floretan',
+  228712 => 'skyred',
+  310132 => 'Doc',
+  226976 => 'ZenDoodles',
+  8791 => 'sillygwailo',
+  138300 => 'dnotes',
 );
 
 foreach($result as $record) {
