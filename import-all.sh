@@ -2,7 +2,7 @@
 
 CONCURRENCY=8 # set to the number of cores you want to pwn with the migration process
 REPOSITORY=/var/git/cvsmirror # replace with path to the root of the local repository
-DESTINATION=/var/git/repositories
+DESTINATION=/var/git/fakerepos
 PHP="/usr/bin/php"
 
 mkdir -p $DESTINATION/project
