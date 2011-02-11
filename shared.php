@@ -233,7 +233,7 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
 
   // Load the data into git.
   git_log("Importing project data into Git.", 'DEBUG', $source);
-  git_invoke('git init --template="' . dirname(__FILE__) . '/templates"', FALSE, $destination);
+  git_invoke('git init', FALSE, $destination);
   try {
     git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination);
   }
