@@ -71,8 +71,6 @@ foreach ($projects as $project) {
     'plugins' => array(
       // @TODO Update these with d.o specific plugins
       'auth_handler' => 'account',
-      'author_mapper' => 'drupalorg_mapper',
-      'committer_mapper' => 'drupalorg_mapper',
     ),
     'update_method' => 1,
   );
