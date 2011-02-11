@@ -11,7 +11,7 @@ $threads = 8;
 $config_template = realpath('./cvs2git.options');
 // Repository locations.
 $repository = '/var/git/cvsmirror';
-$destination = '/var/git/repositories';
+$destination = '/var/git/fakerepos';
 
 require_once './shared.php';
 
