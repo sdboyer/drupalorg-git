@@ -4,6 +4,8 @@
  * Perform the second stage of nuts-and-bolts db migration on the d.o db. This
  * includes:
  *
+ *  - Enqueuing jobs to re-init repositories with proper hook directories and
+ *    set correct descriptions for gitweb
  *  - Updating release node tags
  *
  * This file expects to be executed in a bootstrapped environment, presumably
@@ -12,6 +14,33 @@
 
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
+
+// Perform on-disk repo finalization and cleanup tasks.
+drupal_queue_include();
+$queue = DrupalQueue::get('versioncontrol_repomgr');
+
+$repositories = versioncontrol_repository_load_multiple(array(), array(), array('may cache' => FALSE));
+foreach ($repositories as $repo) {
+  $job = array(
+    'repository' => $repo,
+    'operation' => array(
+      // We need to properly init the hooks now, after the translation & keyword
+      // stripping commits have been pushed in.
+      'reInit' => array(array('hooks')),
+      // Set the description with a link to the project page
+      'setDescription' => array('For more information about this repository, visit the project page at ' . url('node/' . $repo->project_nid, array('absolute' => TRUE))),
+    ),
+  );
+
+  if ($queue->createItem($job)) {
+    git_log("Successfully enqueued repository cleanup job.", 'INFO', $repo->name);
+  }
+  else {
+    git_log("Failed to enqueue repository cleanup job.", 'WARN', $repo->name);
+  }
+}
+
+// Now, release node conversion.
 
 global $rename_patterns;
 
