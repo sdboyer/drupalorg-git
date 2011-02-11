@@ -12,7 +12,7 @@ fi
 if [ ! $C2G_PHP ]; then
     C2G_PHP="/usr/bin/php"
 fi
-if [ ! $C2G_CVS2GIT_OPTIONS]; then
+if [ ! $C2G_CVS2GIT_OPTIONS ]; then
     C2G_CVS2GIT_OPTIONS="./cvs2git-trunk.options"
 fi
 
