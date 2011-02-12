@@ -13,6 +13,9 @@ if (empty($options['d'])) {
   exit(1);
 }
 
+putenv('GIT_AUTHOR_EMAIL=tggm@no-reply.drupal.org');
+putenv('GIT_AUTHOR_NAME=The Great Git Migration');
+
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
@@ -71,7 +74,6 @@ git_invoke('git push', FALSE, "$temp_dir/.git");
 // ------- Utility functions -----------------------------------------------
 
 function strip_cvs_keywords($project, $directory) {
-
   passthru('./strip-cvs-keywords.py ' . escapeshellarg($directory));
 
   $commit_message = escapeshellarg("Stripping CVS keywords from $project");
