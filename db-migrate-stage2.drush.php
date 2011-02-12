@@ -44,28 +44,6 @@ foreach ($repositories as $repo) {
 
 global $rename_patterns;
 
-// for ongoing work purposes - a list of release node nids to ignore.
-$ignores = array(
-  97982, // relativity 4.7.x-2.x-dev
-  749752, // forward 6.x-1.15
-  96095, // track HEAD...or 6.x-0.x. wtf.
-  998168, // hero HEAD/6.x-1.x-dev
-  984516, // opentracker 6.x-1.1
-  898952, // user_alert 6.x-1.3
-  991912, // csstidy 6.x-2.0-rc2
-  813730, // fancy_login 6.x-1.3
-  417912, // module_grants 6.x-6.x-dev
-  1011606, // get_image
-  787054, // uc_ajax_cart 6.x-2.0-beta2
-  598314, // duplicate_role 6.x-1.x-dev
-  552112, // taxonomy_csv 6.x-4.2
-  579486, // event_notification 5.x-2.1
-  579502, // event_notification 5.x-2.1
-  579504, // event_notification 5.x-2.1
-  229130, // rssad 6.x-1.0
-  695436, // drush 6.x-3.0-alpha1
-);
-
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
 // Ensure no stale data.
 db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
