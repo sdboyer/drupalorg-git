@@ -19,7 +19,7 @@ require_once dirname(__FILE__) . '/shared.php';
 drupal_queue_include();
 $queue = DrupalQueue::get('versioncontrol_repomgr');
 
-$repositories = versioncontrol_repository_load_multiple(array(), array(), array('may cache' => FALSE));
+$repositories = versioncontrol_repository_load_multiple(FALSE, array(), array('may cache' => FALSE));
 foreach ($repositories as $repo) {
   $job = array(
     'repository' => $repo,
