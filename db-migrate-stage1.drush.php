@@ -101,6 +101,9 @@ foreach ($projects as $project) {
 // Insert the record of the all the repos into vc_project's tracking table.
 $vc_project_insert->execute();
 
+// Mark all project nodes as needing to be re-indexed in Solr.
+apachesolr_mark_node_type('project_project');
+
 // ------------------
 // Perform role & perm-related migration steps.
 
