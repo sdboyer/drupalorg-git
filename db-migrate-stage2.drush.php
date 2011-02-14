@@ -43,6 +43,7 @@ foreach ($repositories as $repo) {
 // Now, release node conversion.
 
 global $rename_patterns;
+$ignores = array();
 
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
 // Ensure no stale data.
