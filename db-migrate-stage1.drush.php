@@ -301,6 +301,7 @@ $exceptions = array(
   112063 => 'frankcarey',
   96826 => 'irakli',
   166383 => 'chrisshattuck',
+  45996 => 'Vacilando',
 );
 
 foreach($result as $record) {
