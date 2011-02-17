@@ -40,18 +40,20 @@ foreach ($list as $n => $line) {
   if ($forks <= $proc_count) {
     $projectdata = explode(',', $line);
 
-    if (file_exists("$destpath/project/{$projectdata[1]}.git")) {
-      git_log('Crap on a cracker, the target dir already exists!', 'WARN', $projectdata[1]);
-      continue;
-    }
-    
-    if (empty($projectdata[0]) || !is_cvs_dir($srcpath . '/contributions' . $projectdata[0])) {
-      git_log('No CVS source information for project; will spawn an empty repo for it later.', 'INFO', $projectdata[1]);
-      $empties->fwrite($projectdata[1] . PHP_EOL);
-      $emptylist[] = $n;
-      continue;
-    }
+    // Core is stupid, as always. Here's hoping this is one of the last special cases we write for it
+    if (!$projectdata[1] == 'drupal') {
+      if (file_exists("$destpath/project/{$projectdata[1]}.git")) {
+        git_log('Crap on a cracker, the target dir already exists!', 'WARN', $projectdata[1]);
+        continue;
+      }
 
+      if (empty($projectdata[0]) || !is_cvs_dir($srcpath . '/contributions' . $projectdata[0])) {
+        git_log('No CVS source information for project; will spawn an empty repo for it later.', 'INFO', $projectdata[1]);
+        $empties->fwrite($projectdata[1] . PHP_EOL);
+        $emptylist[] = $n;
+        continue;
+      }
+    }
 
     // OK, we're ready to proceed. fork it FORK IT GOOD
     $pid = pcntl_fork();
@@ -64,7 +66,7 @@ foreach ($list as $n => $line) {
       $forks++;
     }
     else {
-      $success = import_directory($optsfile, $srcpath, 'contributions' . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
+      $success = import_directory($optsfile, $srcpath, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
       exit($success);
     }
   }
