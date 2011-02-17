@@ -47,7 +47,7 @@ foreach ($list as $n => $line) {
         continue;
       }
 
-      if (empty($projectdata[0]) || !is_cvs_dir($srcpath . '/contributions' . $projectdata[0])) {
+      if (empty($projectdata[0]) || !is_cvs_dir($srcrepo . '/contributions' . $projectdata[0])) {
         git_log('No CVS source information for project; will spawn an empty repo for it later.', 'INFO', $projectdata[1]);
         $empties->fwrite($projectdata[1] . PHP_EOL);
         $emptylist[] = $n;
@@ -66,7 +66,7 @@ foreach ($list as $n => $line) {
       $forks++;
     }
     else {
-      $success = import_directory($optsfile, $srcpath, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
+      $success = import_directory($optsfile, $srcrepo, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
       exit($success);
     }
   }
