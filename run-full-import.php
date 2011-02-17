@@ -72,7 +72,7 @@ foreach ($list as $n => $line) {
   }
   else {
     pcntl_wait($status);
-    // $ok &= pcntl_wifstopped($status);
+    $ok &= pcntl_wifstopped($status);
     $forks--;
   }
 }
@@ -81,6 +81,10 @@ foreach ($list as $n => $line) {
 while ($forks) {
   pcntl_wait($status);
   $forks--;
+}
+
+if (empty($ok)) {
+  exit(1);
 }
 
 // Now do any necessary cleanup/stripping.
@@ -115,4 +119,4 @@ foreach ($list as $n => $line) {
   }
 }
 
-exit(!$success);
+exit();
