@@ -18,6 +18,7 @@ require_once dirname(__FILE__) . '/shared.php';
 
 if (!file_exists(dirname(__FILE__) . '/project-migrate-info')) {
   // No source transform file, bail out
+  echo 'No project migrate info file, cannot proceed.';
   exit(1);
 }
 
