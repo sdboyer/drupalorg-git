@@ -13,6 +13,8 @@ $destpath = is_string($destpath) ? $destpath : '/var/git/repositories';
 $optsfile = getenv('C2G_CVS2GIT_OPTIONS');
 $optsfile = is_string($optsfile) ? $optsfile : dirname(__FILE__) . '/cvs2git-trunk.options';
 
+set_time_limit(0); // Ensure we don't time out.
+
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
