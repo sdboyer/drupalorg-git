@@ -37,8 +37,8 @@ $gitbackend = versioncontrol_get_backends('git');
 $empties_raw = file(dirname(__FILE__) . '/empties');
 $empties = array();
 foreach ($empties_raw as $empty) {
-  list($uri, $nid) = explode(',', $empty);
-  $empties[$nid] = $uri;
+  $item = explode(',', trim($empty));
+  $empties[(int) $item[1]] = $item[0];
 }
 unset($empties_raw);
 
