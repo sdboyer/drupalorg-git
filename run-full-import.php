@@ -56,7 +56,7 @@ foreach ($list as $n => $line) {
 
     if (empty($projectdata[0]) || !is_cvs_dir($srcrepo . '/contributions' . $projectdata[0])) {
       git_log('No CVS source information for project; will spawn an empty repo for it later.', 'INFO', $projectdata[1]);
-      $empties->fwrite($projectdata[1] . PHP_EOL);
+      $empties->fwrite(sprintf('%s,%d' . PHP_EOL, $projectdata[1], $projectdata[3]));
       $emptylist[] = $n;
       continue;
     }

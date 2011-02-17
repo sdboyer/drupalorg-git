@@ -4,5 +4,15 @@ $result = db_query('SELECT cp.directory, p.uri, COALESCE((tn.tid NOT IN (13, 29)
 
 $fileobj = new SplFileObject(dirname(__FILE__) . '/project-migrate-info', 'w');
 while ($row = db_fetch_object($result)) {
-  $fileobj->fwrite(sprintf('%s,%s,%d' . PHP_EOL, $row->directory, $row->uri, $row->strip_trans));
+  $function = '_tggm_exception_' . $row->uri;
+  if (function_exists($function) && !$function($row)) {
+    // Skip this item if the exception function exists and returns FALSE.
+    continue;
+  }
+  $fileobj->fwrite(sprintf('%s,%s,%d,%d' . PHP_EOL, $row->directory, $row->uri, $row->strip_trans, $row->nid));
+}
+
+function _tggm_exception_sandbox($row) {
+  // The 'sandbox' catchall project would cause us to import ALL sandboxes. No freakin way.
+  return FALSE;
 }
