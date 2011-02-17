@@ -42,12 +42,14 @@ foreach ($list as $n => $line) {
       git_log('Crap on a cracker, the target dir already exists!', 'WARN', $projectdata[1]);
       continue;
     }
-    if (!is_cvs_dir($srcpath . '/contributions' . $projectdata[0])) {
+    
+    if (empty($projectdata[0]) || !is_cvs_dir($srcpath . '/contributions' . $projectdata[0])) {
       git_log('No CVS source information for project; will spawn an empty repo for it later.', 'INFO', $projectdata[1]);
       $empties->fwrite($projectdata[1] . PHP_EOL);
       $emptylist[] = $n;
       continue;
     }
+
 
     // OK, we're ready to proceed. fork it FORK IT GOOD
     $pid = pcntl_fork();
