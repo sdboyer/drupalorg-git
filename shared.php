@@ -178,8 +178,10 @@ function git_log($message, $level = 'NORMAL', $project = NULL) {
  */
 function import_directory($config, $root, $source, $destination, $wipe = FALSE) {
   global $rename_patterns, $wd;
+  // Ensure no trailing slashes for cleanliness
+  $source = rtrim($source, '/');
   $absolute_source_dir = $root . '/' . $source;
-  $elements = explode('/', rtrim($source, '/'));
+  $elements = explode('/', $source);
   $project = array_pop($elements);
 
   // If the source is an empty directory, skip it; cvs2git barfs on these.
