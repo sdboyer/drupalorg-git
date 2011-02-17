@@ -4,5 +4,5 @@ $result = db_query('SELECT cp.directory, p.uri, COALESCE((tn.tid != 29), 1) as s
 
 $fileobj = new SplFileObject(dirname(__FILE__) . '/project-migrate-info', 'w');
 while ($row = db_fetch_object($result)) {
-  $fileobj->fwrite(sprintf('%s %s %d' . PHP_EOL, $row->directory, $row->uri, $row->nid == 3060 ? 0 : $row->strip_trans));
+  $fileobj->fwrite(sprintf('%s,%s,%d' . PHP_EOL, $row->directory, $row->uri, $row->strip_trans));
 }

@@ -36,7 +36,7 @@ $emptylist = array();
 foreach ($list as $n => $line) {
   // if ($ok && $forks <= $proc_count) {
   if ($forks <= $proc_count) {
-    $projectdata = explode(' ', $line);
+    $projectdata = explode(',', $line);
 
     if (file_exists("$destpath/project/{$projectdata[1]}.git")) {
       git_log('Crap on a cracker, the target dir already exists!', 'WARN', $projectdata[1]);
@@ -85,7 +85,7 @@ foreach ($list as $n => $line) {
       continue;
     }
 
-    $projectdata = explode(' ', $line);
+    $projectdata = explode(',', $line);
 
     // fork it FORK IT _BETTER_
     $pid = pcntl_fork();
