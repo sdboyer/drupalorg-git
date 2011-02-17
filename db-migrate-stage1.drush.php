@@ -63,7 +63,7 @@ foreach ($projects as $project) {
     continue;
   }
 
-  if (!is_dir('/var/git/repositories/project/' . $project->uri . '.git')) {
+  if (!is_dir('/var/git/repositories/project/' . $project->uri . '.git') && empty($empties[$project->nid])) {
     git_log(strtr('Project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $project->uri . '.git')), 'WARN', $project->uri);
     continue;
   }
