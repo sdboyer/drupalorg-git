@@ -16,7 +16,7 @@ if (!file_exists(dirname(__FILE__) . '/empties')) {
   exit(1);
 }
 
-$result = db_query('SELECT p.nid, p.uri, c.directory, n.status FROM {project_projects} AS p INNER JOIN {cvs_projects} AS c ON p.nid = c.nid INNER JOIN {nid} AS n ON p.nid = n.nid');
+$result = db_query('SELECT p.nid, p.uri, c.directory, n.status FROM {project_projects} AS p INNER JOIN {cvs_projects} AS c ON p.nid = c.nid INNER JOIN {node} AS n ON p.nid = n.nid');
 
 $projects = array();
 while ($row = db_fetch_object($result)) {
