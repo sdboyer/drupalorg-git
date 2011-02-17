@@ -491,7 +491,7 @@ git_invoke('git push', FALSE, "$temp_dir/.git");
 function strip_cvs_keywords($project, $directory) {
   passthru('./strip-cvs-keywords.py ' . escapeshellarg($directory));
 
-  $commit_message = escapeshellarg("Stripping CVS keywords from $project");
+  $commit_message = escapeshellarg("Stripping CVS keywords");
   if (git_invoke('git status --untracked-files=no -sz --', TRUE, "$directory/.git", $directory)) {
     git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
   }
@@ -505,7 +505,7 @@ function kill_translations($project, $directory) {
 
   $directories = array_merge($translations, $po);
   if (!empty($directories)) {
-    $commit_message = escapeshellarg("Removing translation directories from $project");
+    $commit_message = escapeshellarg("Removing translation directories");
     foreach ($directories as $dir) {
       git_invoke("git rm -r $dir", FALSE, "$directory/.git", $directory);
     }
