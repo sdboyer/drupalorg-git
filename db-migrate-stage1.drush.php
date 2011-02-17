@@ -10,7 +10,7 @@
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
-$result = db_query('SELECT p.nid, p.uri, c.directory FROM project_projects AS p INNER JOIN cvs_projects AS c ON p.nid = c.nid');
+$result = db_query('SELECT p.nid, p.uri, c.directory, n.status FROM {project_projects} AS p INNER JOIN {cvs_projects} AS c ON p.nid = c.nid INNER JOIN {nid} AS n ON p.nid = n.nid');
 
 $projects = array();
 while ($row = db_fetch_object($result)) {
