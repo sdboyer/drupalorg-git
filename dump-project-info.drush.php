@@ -1,5 +1,20 @@
 <?php
 
+// First, delete some projects nodes.
+
+$kill = array(
+  103482, // sandbox
+  // stupid idtthemes bollocks
+  525922, 525926, 525930, 525938, 525944, 525950, 525954, 525958, 525962, 525966,
+  525970, 525974, 525978, 525984, 525988, 525994, 526002, 526216, 526230, 526258,
+  526270, 526276, 526286, 526290, 526294, 526532,
+
+);
+
+foreach ($kill as $nid) {
+  node_delete($nid);
+}
+
 $result = db_query('SELECT cp.directory, p.uri, COALESCE((tn.tid NOT IN (13, 29)), 1) as strip_trans, p.nid FROM project_projects AS p INNER JOIN cvs_projects AS cp ON p.nid = cp.nid INNER JOIN node AS n on p.nid = n.nid LEFT JOIN term_node tn ON n.vid = tn.vid AND tn.tid IN (13, 14, 15, 29, 32, 96)');
 
 $fileobj = new SplFileObject(dirname(__FILE__) . '/project-migrate-info', 'w');
