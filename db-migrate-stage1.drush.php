@@ -97,8 +97,6 @@ foreach ($projects as $project) {
         'passthru' => array(
           'clone -b launch --bare --template ' . $templatedir . 'git://github.com/sdboyer/drupalorg-git.git'
         ),
-        // Save repo record to db, creating a repo_id. This also does the vc_project mapping.
-        'save' => array(),
       ),
     );
   }
@@ -109,8 +107,6 @@ foreach ($projects as $project) {
       'operation' => array(
         // Create the repo on disk, and attach all the right hooks.
         'create' => array(),
-        // Save repo record to db, creating a repo_id. This also does the vc_project mapping.
-        'save' => array(),
       ),
     );
   }
@@ -127,6 +123,8 @@ foreach ($projects as $project) {
   }
   // Add shared job ops.
 
+  // Save repo record to db, creating a repo_id. This also does the vc_project mapping.
+  $job['operation']['save'] = array();
   // Save user auth data.
   $job['operation']['setUserAuthData'] = array($maintainers_result->fetchAll(PDO::FETCH_COLUMN), $auth_data);
   // Set the description with a link to the project page
