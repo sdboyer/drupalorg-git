@@ -31,6 +31,10 @@ $forks = 0;
 $empties = new SplFileObject(dirname(__FILE__) . '/empties', 'w');
 $emptylist = array();
 
+// Scrub the output dir, it needs to be clean for errors to be real
+$shell_dest = escapeshellarg("$destpath/project");
+`rm -rf $shell_dest`;
+
 foreach ($list as $n => $line) {
   // if ($ok && $forks <= $proc_count) {
   if ($forks <= $proc_count) {
