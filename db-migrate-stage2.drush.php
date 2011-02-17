@@ -15,32 +15,7 @@
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
-// Perform on-disk repo finalization and cleanup tasks.
-drupal_queue_include();
-$queue = DrupalQueue::get('versioncontrol_repomgr');
-
-$repositories = versioncontrol_repository_load_multiple(FALSE, array(), array('may cache' => FALSE));
-foreach ($repositories as $repo) {
-  $job = array(
-    'repository' => $repo,
-    'operation' => array(
-      // We need to properly init the hooks now, after the translation & keyword
-      // stripping commits have been pushed in.
-      'reInit' => array(array('hooks')),
-      // Set the description with a link to the project page
-      'setDescription' => array('For more information about this repository, visit the project page at ' . url('node/' . $repo->project_nid, array('absolute' => TRUE))),
-    ),
-  );
-
-  if ($queue->createItem($job)) {
-    git_log("Successfully enqueued repository cleanup job.", 'INFO', $repo->name);
-  }
-  else {
-    git_log("Failed to enqueue repository cleanup job.", 'WARN', $repo->name);
-  }
-}
-
-// Now, release node conversion.
+// Do release node conversion. Yuck.
 
 global $rename_patterns;
 $ignores = array();
@@ -65,7 +40,6 @@ while ($row = db_fetch_object($result)) {
   // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags.
   $insert->execute();
 }
-
 
 function update_release(VersioncontrolGitRepository $repo, $release_data, $patterns, $insert) {
   if ($release_data->branch == 1 || $release_data->tag == 'HEAD') { // HEAD doesn't get an entry in {cvs_tags} as a branch.

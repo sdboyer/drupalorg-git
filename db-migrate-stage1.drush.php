@@ -10,6 +10,12 @@
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
+
+if (!file_exists(dirname(__FILE__) . '/empties')) {
+  git_log('Empties file with empty repo data could not be found, aborting to preserve idempotence.', 'WARN');
+  exit(1);
+}
+
 $result = db_query('SELECT p.nid, p.uri, c.directory, n.status FROM {project_projects} AS p INNER JOIN {cvs_projects} AS c ON p.nid = c.nid INNER JOIN {nid} AS n ON p.nid = n.nid');
 
 $projects = array();
@@ -17,11 +23,24 @@ while ($row = db_fetch_object($result)) {
   $projects[] = $row;
 }
 
+// Get the repomgr queue up and ready
+drupal_queue_include();
+$queue = DrupalQueue::get('versioncontrol_repomgr');
+
 // ensure the plugin is loaded
 ctools_include('plugins');
 ctools_plugin_load_class('versioncontrol', 'vcs_auth', 'account', 'handler');
 
 $gitbackend = versioncontrol_get_backends('git');
+
+// Get the info on empty repos and store it in a useful way
+$empties_raw = file(dirname(__FILE__) . '/empties');
+$empties = array();
+foreach ($empties_raw as $empty) {
+  list($uri, $nid) = explode(',', $empty);
+  $empties[$nid] = $uri;
+}
+unset ($empties_raw);
 
 $auth_data = array(
   'access' => VersioncontrolAuthHandlerMappedAccounts::ALL,
@@ -36,70 +55,90 @@ $auth_data = array(
 
 // ensure vc_project's table is empty for a nice, clean insert
 db_delete('versioncontrol_project_projects')->execute();
-$vc_project_insert = db_insert('versioncontrol_project_projects')
-  ->fields(array('nid', 'repo_id'));
 
 $repos = array();
 foreach ($projects as $project) {
   if (empty($project->nid)) {
-    watchdog('cvsmigration', 'No nid for project "!project". This should NOT happen.', array('!project' => $project->uri), WATCHDOG_ERROR);
+    git_log('Project has no nid. This should NOT happen.', 'WARN', $project->uri);
     continue;
   }
-  $parts = explode('/', trim($project->directory, '/'));
-  if (!in_array($parts[0], array('modules', 'themes', 'profiles', 'theme-engines')) && $project->nid != 3060) {
-    // If the leading path isn't in one of these places, we skip it. unless it's core.
-    continue;
-  }
-  else {
-    $name = $parts[1];
-  }
 
-  if ($project->nid == 3060) {
-    // special-case core.
-    $name = 'drupal';
-  }
-
-  if (!is_dir('/var/git/repositories/project/' . $name . '.git')) {
-    git_log(strtr('Project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $name . '.git')), 'WARN', $project->uri);
+  if (!is_dir('/var/git/repositories/project/' . $project->uri . '.git')) {
+    git_log(strtr('Project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $project->uri . '.git')), 'WARN', $project->uri);
     continue;
   }
 
   $data = array(
-    'name' => $name,
-    'root' => '/var/git/repositories/project/' . $name . '.git',
+    'name' => $project->uri,
+    'root' => '/var/git/repositories/project/' . $project->uri . '.git',
+    'plugins' => array(),
     'vcs' => 'git',
-    'plugins' => array(
-      // @TODO Update these with d.o specific plugins
-      'auth_handler' => 'account',
-    ),
+    'project_nid' => $project->nid,
     'update_method' => 1,
   );
 
-  // Build & insert the repo
+  // Build the repo object
   $repo = $gitbackend->buildEntity('repo', $data);
-  $repo->save();
 
-  if (empty($repo->repo_id)) {
-    watchdog('cvsmigration', 'Repo id not present on the "!repo" repository after save. This should NOT happen.', array('!repo' => $repo->name), WATCHDOG_ERROR);
-    continue;
+  // Fetch all the maintainer data.
+  $maintainers_result = db_select('cvs_project_maintainers', 'c')
+      ->fields('c', array('uid'))
+      ->condition('c.nid', $project->nid)
+      ->execute();
+
+  if ($project->nid == 851266) {
+    $git_basedir = variable_get('drupalorg_git_basedir', '/var/git');
+    $templatedir = "$git_basedir/templates/built/project";
+    // Hehehe...do a special case for tggm, just to be showy :)
+    $job = array(
+      'repository' => $repo,
+      'operation' => array(
+        // Clone the migration repo from github and set the launch branch as default. woot!
+        'passthru' => array(
+          'clone -b launch --bare --template ' . $templatedir . 'git://github.com/sdboyer/drupalorg-git.git'
+        ),
+        // Save repo record to db, creating a repo_id. This also does the vc_project mapping.
+        'save' => array(),
+      ),
+    );
   }
-
-  // enqueue the project values for insertion
-  $vc_project_insert->values(array('nid' => $project->nid, 'repo_id' => $repo->repo_id));
-
-  $repos[$repo->repo_id] = $repo;
-
-  // Copy commit access from cvs_project_maintainers to versioncontrol
-  $auth_handler = $repo->getAuthHandler();
-  $maintainers = db_query('SELECT uid FROM cvs_project_maintainers WHERE nid = %d', $project->nid);
-  while ($maintainer = db_fetch_object($maintainers)) {
-    $auth_handler->setUserData($maintainer->uid, $auth_data);
+  else if (isset($empties[$project->nid])) {
+    // This is one of our projects missing a repo. Build a good init payload.
+    $job = array(
+      'repository' => $repo,
+      'operation' => array(
+        // Create the repo on disk, and attach all the right hooks.
+        'create' => array(),
+        // Save repo record to db, creating a repo_id. This also does the vc_project mapping.
+        'save' => array(),
+      ),
+    );
   }
-  $auth_handler->save();
+  else {
+    // The more typical case, where the repo was already created by cvs2git
+    $job = array(
+      'repository' => $repo,
+      'operation' => array(
+        // We need to properly init the hooks now, after the translation & keyword
+        // stripping commits have been pushed in.
+        'reInit' => array(array('hooks')),
+      ),
+    );
+  }
+  // Add shared job ops.
+
+  // Save user auth data.
+  $job['operation']['setUserAuthData'] = array(array($maintainers_result->fetchAll(PDO::FETCH_COLUMN), $auth_data));
+  // Set the description with a link to the project page
+  $job['operation']['setDescription'] = array('For more information about this repository, visit the project page at ' . url('node/' . $repo->project_nid, array('absolute' => TRUE)));
+
+  if ($queue->createItem($job)) {
+    git_log("Successfully enqueued repository initialization job.", 'INFO', $repo->name);
+  }
+  else {
+    git_log("Failed to enqueue repository initialization job.", 'WARN', $repo->name);
+  }
 }
-
-// Insert the record of the all the repos into vc_project's tracking table.
-$vc_project_insert->execute();
 
 // Mark all project nodes as needing to be re-indexed in Solr.
 apachesolr_mark_node_type('project_project');
