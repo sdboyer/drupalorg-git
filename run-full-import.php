@@ -22,11 +22,8 @@ if (!file_exists(dirname(__FILE__) . '/project-migrate-info')) {
   exit(1);
 }
 
-// <srcpath> <dest> <strip translations>
+// Format: <srcpath> <dest> <strip translations>
 $list = file(dirname(__FILE__) . '/project-migrate-info');
-
-$list_num = count($list);
-$chunks = array_chunk($list, $list_num / ($proc_count));
 
 // Run forked subprocesses
 $ok = TRUE;
