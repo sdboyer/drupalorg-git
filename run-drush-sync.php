@@ -3,8 +3,8 @@
 $drush = empty($argv[1]) ? 'drush' : $argv[1];
 $proc_count = empty($argv[2]) ? 8 : (int) $argv[2];
 
-$raw_dirs = glob('/var/git/stagingrepos/project/*.git');
-$dirs = preg_replace('#^/var/git/stagingrepos/project/(.*)\.git$#', '\1', $raw_dirs);
+$raw_dirs = glob('/var/git/repositories/project/*.git');
+$dirs = preg_replace('#^/var/git/repositories/project/(.*)\.git$#', '\1', $raw_dirs);
 
 // Pull out the biggest ones to run in just one process, keep things more even
 $biggies = array('drupal');
