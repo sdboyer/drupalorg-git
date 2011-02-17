@@ -16,13 +16,13 @@ $optsfile = is_string($optsfile) ? $optsfile : dirname(__FILE__) . '/cvs2git-tru
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
-if (!file_exists(dirname(__FILE__) . '/project-list-json')) {
+if (!file_exists(dirname(__FILE__) . '/project-migrate-info')) {
   // No source transform file, bail out
   exit(1);
 }
 
 // <srcpath> <dest> <strip translations>
-$list = file(dirname(__FILE__) . '/project-list-json');
+$list = file(dirname(__FILE__) . '/project-migrate-info');
 
 $list_num = count($list);
 $chunks = array_chunk($list, $list_num / ($proc_count));
