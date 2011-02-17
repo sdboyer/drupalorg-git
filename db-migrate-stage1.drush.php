@@ -40,7 +40,7 @@ foreach ($empties_raw as $empty) {
   list($uri, $nid) = explode(',', $empty);
   $empties[$nid] = $uri;
 }
-unset ($empties_raw);
+unset($empties_raw);
 
 $auth_data = array(
   'access' => VersioncontrolAuthHandlerMappedAccounts::ALL,
@@ -128,7 +128,7 @@ foreach ($projects as $project) {
   // Add shared job ops.
 
   // Save user auth data.
-  $job['operation']['setUserAuthData'] = array(array($maintainers_result->fetchAll(PDO::FETCH_COLUMN), $auth_data));
+  $job['operation']['setUserAuthData'] = array($maintainers_result->fetchAll(PDO::FETCH_COLUMN), $auth_data);
   // Set the description with a link to the project page
   $job['operation']['setDescription'] = array('For more information about this repository, visit the project page at ' . url('node/' . $repo->project_nid, array('absolute' => TRUE)));
 
