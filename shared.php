@@ -224,44 +224,44 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
   file_put_contents('./cvs2git.options', strtr(file_get_contents($config), $options));
 
   // Start the import process.
-  git_log("Generating the fast-import dump files.", 'DEBUG', $source);
+  git_log("Generating the fast-import dump files.", 'DEBUG', $project);
   try {
     git_invoke(escapeshellarg(CVS2GIT) . ' --options=./cvs2git.options');
   }
   catch (Exception $e) {
-    git_log("cvs2git failed with error '$e'. Terminating import.", 'WARN', $source);
+    git_log("cvs2git failed with error '$e'. Terminating import.", 'WARN', $project);
     return FALSE;
   }
 
   // Load the data into git.
-  git_log("Importing project data into Git.", 'DEBUG', $source);
+  git_log("Importing project data into Git.", 'DEBUG', $project);
   git_invoke('git init', FALSE, $destination);
   try {
     git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination);
   }
   catch (Exception $e) {
-    git_log("Fast-import failed with error '$e'. Terminating import.", 'WARN', $source);
+    git_log("Fast-import failed with error '$e'. Terminating import.", 'WARN', $project);
     return FALSE;
   }
 
   // Do branch/tag renaming
-  git_log("Performing branch/tag renaming.", 'DEBUG', $source);
+  git_log("Performing branch/tag renaming.", 'DEBUG', $project);
   // For core
   if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) { // for core
     $trans_map = $rename_patterns['core']['branches'];
-    convert_project_branches($source, $destination, $trans_map);
+    convert_project_branches($project, $destination, $trans_map);
     // Now tags.
     $trans_map = $rename_patterns['core']['tags'];
-    convert_project_tags($source, $destination, $rename_patterns['core']['tagmatch'], $trans_map);
+    convert_project_tags($project, $destination, $rename_patterns['core']['tagmatch'], $trans_map);
   }
   // For contrib, minus sandboxes
   else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
     // Branches first.
     $trans_map = $rename_patterns['contrib']['branches'];
-    convert_project_branches($source, $destination, $trans_map);
+    convert_project_branches($project, $destination, $trans_map);
     // Now tags.
     $trans_map = $rename_patterns['contrib']['tags'];
-    convert_project_tags($source, $destination, $rename_patterns['contrib']['tagmatch'], $trans_map);
+    convert_project_tags($project, $destination, $rename_patterns['contrib']['tagmatch'], $trans_map);
   }
 
   // We succeeded despite all odds!
