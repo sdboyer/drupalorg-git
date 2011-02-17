@@ -166,7 +166,7 @@ foreach ($projects as $project) {
       break;
   }
 
-  git_log("Enqueuing repomgr job with the following payload:\n" . print_r(serialize($job)), 'DEBUG', $project->uri);
+  git_log("Enqueuing repomgr job with the following payload:\n" . print_r($job['operation']), 'DEBUG', $project->uri);
 
   if ($queue->createItem($job)) {
     git_log("Successfully enqueued repository initialization job.", 'INFO', $repo->name);
