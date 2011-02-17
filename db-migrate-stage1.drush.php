@@ -59,14 +59,14 @@ foreach ($projects as $project) {
     $name = 'drupal';
   }
 
-  if (!is_dir('/var/git/stagingrepos/project/' . $name . '.git')) {
-    watchdog('cvsmigration', 'Project !project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $name . '.git'), WATCHDOG_ERROR);
+  if (!is_dir('/var/git/repositories/project/' . $name . '.git')) {
+    git_log(strtr('Project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $name . '.git')), 'WARN', $project->uri);
     continue;
   }
 
   $data = array(
     'name' => $name,
-    'root' => '/var/git/stagingrepos/project/' . $name . '.git',
+    'root' => '/var/git/repositories/project/' . $name . '.git',
     'vcs' => 'git',
     'plugins' => array(
       // @TODO Update these with d.o specific plugins
