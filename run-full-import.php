@@ -31,8 +31,9 @@ $chunks = array_chunk($list, $list_num / ($proc_count));
 $ok = TRUE;
 $forks = 0;
 $empties = new SplFileObject(dirname(__FILE__) . '/empties', 'w+');
+$emptylist = array();
 
-foreach ($list as $line) {
+foreach ($list as $n => $line) {
   // if ($ok && $forks <= $proc_count) {
   if ($forks <= $proc_count) {
     $projectdata = explode(' ', $line);
@@ -44,10 +45,11 @@ foreach ($list as $line) {
     if (!is_cvs_dir($srcpath . '/contributions' . $projectdata[0])) {
       git_log('No CVS source information for project; will spawn an empty repo for it later.', 'INFO', $projectdata[1]);
       $empties->fwrite($projectdata[1] . "\n");
+      $emptylist[] = $n;
       continue;
     }
 
-    // OK, we're ready to proceed. FORK IT FORK IT GOOD
+    // OK, we're ready to proceed. fork it FORK IT GOOD
     $pid = pcntl_fork();
 
     if ($pid == -1) {
@@ -73,6 +75,38 @@ foreach ($list as $line) {
 while ($forks) {
   pcntl_wait($status);
   $forks--;
+}
+
+// Now do any necessary cleanup/stripping.
+foreach ($list as $n => $line) {
+  if ($ok && $forks <= $proc_count) {
+    // Skip this step if we know the repo doesn't exist.
+    if (in_array($n, $emptylist)) {
+      continue;
+    }
+
+    $projectdata = explode(' ', $line);
+
+    // fork it FORK IT _BETTER_
+    $pid = pcntl_fork();
+
+    if ($pid == -1) {
+      die("oh noes! no fork!");
+    }
+    else if ($pid) {
+      // Parent; increment fork counter.
+      $forks++;
+    }
+    else {
+      cleanup_migrated_repo($projectdata[1], "$destpath/project/{$projectdata[1]}.git", TRUE, $projectdata[2] == '1');
+      exit;
+    }
+  }
+  else {
+    pcntl_wait($status);
+    $ok &= pcntl_wifstopped($status);
+    $forks--;
+  }
 }
 
 exit(!$success);
