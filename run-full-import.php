@@ -36,8 +36,8 @@ $shell_dest = escapeshellarg("$destpath/project");
 `rm -rf $shell_dest`;
 
 foreach ($list as $n => $line) {
-  // if ($ok && $forks <= $proc_count) {
-  if ($forks <= $proc_count) {
+  if ($ok && $forks < $concurrency) {
+  // if ($forks <= $concurrency) {
     $projectdata = explode(',', $line);
 
     // Core is stupid, as always. Here's hoping this is one of the last special cases we write for it
@@ -85,7 +85,7 @@ while ($forks) {
 
 // Now do any necessary cleanup/stripping.
 foreach ($list as $n => $line) {
-  if ($ok && $forks <= $proc_count) {
+  if ($ok && $forks <= $concurrency) {
     // Skip this step if we know the repo doesn't exist.
     if (in_array($n, $emptylist)) {
       continue;
