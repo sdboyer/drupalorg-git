@@ -87,15 +87,17 @@ foreach ($projects as $project) {
       ->execute();
 
   if ($project->nid == 851266) {
+    // Hehehe...do a special case for tggm, just to be showy :)
     $git_basedir = variable_get('drupalorg_git_basedir', '/var/git');
     $templatedir = "$git_basedir/templates/built/project";
-    // Hehehe...do a special case for tggm, just to be showy :)
+    $tgt_dir = "$git_basedir/repositories/project/$project->uri.git";
+
     $job = array(
       'repository' => $repo,
       'operation' => array(
         // Clone the migration repo from github and set the launch branch as default. woot!
         'passthru' => array(
-          'clone -b launch --bare --template ' . $templatedir . 'git://github.com/sdboyer/drupalorg-git.git'
+          'clone -b launch --bare --template ' . $templatedir . ' git://github.com/sdboyer/drupalorg-git.git ' . $tgt_dir,
         ),
       ),
     );
