@@ -26,7 +26,7 @@ if (!file_exists(dirname(__FILE__) . '/project-migrate-info')) {
 $list = file(dirname(__FILE__) . '/project-migrate-info');
 
 // Run forked subprocesses
-$ok = TRUE;
+$ok = 1;
 $forks = 0;
 $empties = new SplFileObject(dirname(__FILE__) . '/empties', 'w');
 $emptylist = array();
@@ -36,44 +36,45 @@ $shell_dest = escapeshellarg("$destpath/project");
 `rm -rf $shell_dest`;
 
 foreach ($list as $n => $line) {
-  if ($ok && $forks < $concurrency) {
-  // if ($forks <= $concurrency) {
-    $projectdata = explode(',', $line);
-
-    // Core is stupid, as always. Here's hoping this is one of the last special cases we write for it
-    if ($projectdata[1] != 'drupal') {
-      if (file_exists("$destpath/project/{$projectdata[1]}.git")) {
-        git_log('Crap on a cracker, the target dir already exists!', 'WARN', $projectdata[1]);
-        continue;
-      }
-
-      if (empty($projectdata[0]) || !is_cvs_dir($srcrepo . '/contributions' . $projectdata[0])) {
-        git_log('No CVS source information for project; will spawn an empty repo for it later.', 'INFO', $projectdata[1]);
-        $empties->fwrite($projectdata[1] . PHP_EOL);
-        $emptylist[] = $n;
-        continue;
-      }
-    }
-
-    // OK, we're ready to proceed. fork it FORK IT GOOD
-    $pid = pcntl_fork();
-
-    if ($pid == -1) {
-      die("oh noes! no fork!");
-    }
-    else if ($pid) {
-      // Parent; increment fork counter.
-      $forks++;
-    }
-    else {
-      $success = import_directory($optsfile, $srcrepo, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
-      exit(empty($success));
-    }
-  }
-  else {
+  if ($forks >= $concurrency) {
     pcntl_wait($status);
     $ok &= pcntl_wifstopped($status);
     $forks--;
+    if (empty($ok)) {
+      break;
+    }
+  }
+
+  $projectdata = explode(',', $line);
+
+  // Core is stupid, as always. Here's hoping this is one of the last special cases we write for it
+  if ($projectdata[1] != 'drupal') {
+    if (file_exists("$destpath/project/{$projectdata[1]}.git")) {
+      git_log('Crap on a cracker, the target dir already exists!', 'WARN', $projectdata[1]);
+      continue;
+    }
+
+    if (empty($projectdata[0]) || !is_cvs_dir($srcrepo . '/contributions' . $projectdata[0])) {
+      git_log('No CVS source information for project; will spawn an empty repo for it later.', 'INFO', $projectdata[1]);
+      $empties->fwrite($projectdata[1] . PHP_EOL);
+      $emptylist[] = $n;
+      continue;
+    }
+  }
+
+  // OK, we're ready to proceed. fork it FORK IT GOOD
+  $pid = pcntl_fork();
+
+  if ($pid == -1) {
+    die("oh noes! no fork!");
+  }
+  else if ($pid) {
+    // Parent; increment fork counter.
+    $forks++;
+  }
+  else {
+    $success = import_directory($optsfile, $srcrepo, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
+    exit(empty($success));
   }
 }
 
@@ -108,8 +109,8 @@ foreach ($list as $n => $line) {
       $forks++;
     }
     else {
-      cleanup_migrated_repo($projectdata[1], "$destpath/project/{$projectdata[1]}.git", TRUE, $projectdata[2] == '1');
-      exit;
+      $success = cleanup_migrated_repo($projectdata[1], "$destpath/project/{$projectdata[1]}.git", TRUE, $projectdata[2] == '1');
+      exit(empty($success));
     }
   }
   else {
