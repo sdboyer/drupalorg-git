@@ -26,7 +26,7 @@ if (!file_exists(dirname(__FILE__) . '/project-migrate-info')) {
 $list = file(dirname(__FILE__) . '/project-migrate-info');
 
 // Run forked subprocesses
-$ok = 1;
+$status = 0;
 $forks = 0;
 $empties = new SplFileObject(dirname(__FILE__) . '/empties', 'w');
 $emptylist = array();
@@ -37,10 +37,10 @@ $shell_dest = escapeshellarg("$destpath/project");
 
 foreach ($list as $n => $line) {
   if ($forks >= $concurrency) {
-    pcntl_wait($status);
-    $ok &= pcntl_wifstopped($status);
+    $pid = pcntl_wait($status);
+    $status = pcntl_wifstopped($status);
     $forks--;
-    if (empty($ok)) {
+    if (!empty($status)) {
       break;
     }
   }
@@ -84,40 +84,48 @@ while ($forks) {
   $forks--;
 }
 
-if (empty($ok)) {
-  exit(1);
+if (!empty($status)) {
+  exit($status);
 }
 
 // Now do any necessary cleanup/stripping.
 foreach ($list as $n => $line) {
-  if ($ok && $forks <= $concurrency) {
-    // Skip this step if we know the repo doesn't exist.
-    if (in_array($n, $emptylist)) {
-      continue;
-    }
-
-    $projectdata = explode(',', $line);
-
-    // fork it FORK IT _BETTER_
-    $pid = pcntl_fork();
-
-    if ($pid == -1) {
-      die("oh noes! no fork!");
-    }
-    else if ($pid) {
-      // Parent; increment fork counter.
-      $forks++;
-    }
-    else {
-      $success = cleanup_migrated_repo($projectdata[1], "$destpath/project/{$projectdata[1]}.git", TRUE, $projectdata[2] == '1');
-      exit(empty($success));
+  if ($forks >= $concurrency) {
+    $pid = pcntl_wait($status);
+    $status = pcntl_wifstopped($status);
+    $forks--;
+    if (!empty($status)) {
+      break;
     }
   }
+
+  // Skip this step if we know the repo doesn't exist.
+  if (in_array($n, $emptylist)) {
+    continue;
+  }
+
+  $projectdata = explode(',', $line);
+
+  // fork it FORK IT _BETTER_
+  $pid = pcntl_fork();
+
+  if ($pid == -1) {
+    die("oh noes! no fork!");
+  }
+  else if ($pid) {
+    // Parent; increment fork counter.
+    $forks++;
+  }
   else {
-    pcntl_wait($status);
-    $ok &= pcntl_wifstopped($status);
-    $forks--;
+    $success = cleanup_migrated_repo($projectdata[1], "$destpath/project/{$projectdata[1]}.git", TRUE, $projectdata[2] == '1');
+    exit(empty($success));
   }
 }
 
-exit();
+// Make sure all forked children finish.
+while ($forks) {
+  pcntl_wait($status);
+  $forks--;
+}
+
+exit($status);

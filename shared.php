@@ -179,17 +179,17 @@ function git_log($message, $level = 'NORMAL', $project = NULL) {
 function import_directory($config, $root, $source, $destination, $wipe = FALSE) {
   global $rename_patterns, $wd;
   $absolute_source_dir = $root . '/' . $source;
-  $elements = explode('/', $source);
+  $elements = explode('/', rtrim($source, '/'));
   $project = array_pop($elements);
 
   // If the source is an empty directory, skip it; cvs2git barfs on these.
   if (is_empty_dir($absolute_source_dir)) {
-    git_log("Skipping empty source directory '$absolute_source_dir'.");
+    git_log("Skipping empty source directory '$absolute_source_dir'.", 'QUIET', $project);
     return FALSE;
   }
 
   if (!is_cvs_dir($absolute_source_dir)) {
-    git_log("Skipping non CVS source directory '$absolute_source_dir'.");
+    git_log("Skipping non CVS source directory '$absolute_source_dir'.", 'QUIET', $project);
     return FALSE;
   }
 
