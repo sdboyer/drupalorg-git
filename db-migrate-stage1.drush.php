@@ -71,7 +71,9 @@ foreach ($projects as $project) {
   $data = array(
     'name' => $project->uri,
     'root' => '/var/git/repositories/project/' . $project->uri . '.git',
-    'plugins' => array(),
+    'plugins' => array(
+      'auth_handler' => 'account', // We can't rely on the $conf default for this b/c vc_project doesn't respect it
+    ),
     'vcs' => 'git',
     'project_nid' => $project->nid,
     'update_method' => 1,
