@@ -30,7 +30,7 @@ $chunks = array_chunk($list, $list_num / ($proc_count));
 // Run forked subprocesses
 $ok = TRUE;
 $forks = 0;
-$empties = new SplFileObject(dirname(__FILE__) . '/empties', 'w+');
+$empties = new SplFileObject(dirname(__FILE__) . '/empties', 'w');
 $emptylist = array();
 
 foreach ($list as $n => $line) {
