@@ -67,7 +67,7 @@ foreach ($list as $n => $line) {
     }
     else {
       $success = import_directory($optsfile, $srcrepo, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
-      exit($success);
+      exit(empty($success));
     }
   }
   else {
