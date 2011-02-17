@@ -487,6 +487,7 @@ function cleanup_migrated_repo($project, $destination_dir, $keywords, $translati
   }
 
   git_invoke('git push', FALSE, "$temp_dir/.git");
+  return TRUE;
 }
 
 function strip_cvs_keywords($project, $directory) {
