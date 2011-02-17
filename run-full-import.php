@@ -35,6 +35,7 @@ $emptylist = array();
 $shell_dest = escapeshellarg("$destpath/project");
 `rm -rf $shell_dest`;
 
+git_log("\n*****************\nBegin forking import processes\n*****************\n", 'DEBUG');
 foreach ($list as $n => $line) {
   if ($forks >= $concurrency) {
     $pid = pcntl_wait($status);
@@ -76,10 +77,13 @@ foreach ($list as $n => $line) {
     $success = import_directory($optsfile, $srcrepo, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
     exit(empty($success));
   }
+  git_log("Finished import #$n\n", 'DEBUG');
 }
 
+git_log("\n*****************\nFinished forking import processes, now waiting for all children to complete\n*****************\n", 'DEBUG');
 // Make sure all forked children finish.
 while ($forks) {
+  git_log("Fork count remaining: $forks\n", 'DEBUG');
   pcntl_wait($status);
   $forks--;
 }
@@ -88,7 +92,11 @@ if (!empty($status)) {
   exit($status);
 }
 
+git_log("Empties list:\n" . print_r($emptylist, TRUE), 'DEBUG');
+
 // Now do any necessary cleanup/stripping.
+git_log("\n*****************\nBegin forking cleanup processes\n*****************\n", 'DEBUG');
+$forks = 0; // Reinit just to be sure
 foreach ($list as $n => $line) {
   if ($forks >= $concurrency) {
     $pid = pcntl_wait($status);
@@ -120,10 +128,14 @@ foreach ($list as $n => $line) {
     $success = cleanup_migrated_repo($projectdata[1], "$destpath/project/{$projectdata[1]}.git", TRUE, $projectdata[2] == '1');
     exit(empty($success));
   }
+  git_log("Finished cleanup #$n\n", 'DEBUG');
 }
 
+
 // Make sure all forked children finish.
+git_log("\n*****************\nFinished forking cleanup processes, now waiting for all children to complete\n*****************\n", 'DEBUG');
 while ($forks) {
+  git_log("Fork count remaining: $forks\n", 'DEBUG');
   pcntl_wait($status);
   $forks--;
 }
