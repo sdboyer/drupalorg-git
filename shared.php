@@ -44,6 +44,11 @@ $rename_patterns = array(
       '/^(\d)-(\d)-(\d+)/' => '\1.\2.\3',
       // 5 and later base transform
       '/^(\d)-(\d+)/' => '\1.\2',
+      // And now lowercase all possible extra strings
+      '/UNSTABLE/' => 'unstable',
+      '/ALPHA/' => 'alpha',
+      '/BETA/' => 'beta',
+      '/RC/' => 'rc',
     ),
     'tagmatch' => '/^DRUPAL-\d(-\d)?-\d+(-(\w+)(-)?(\d+)?)?$/',
   ),
@@ -64,11 +69,20 @@ $rename_patterns = array(
       // Strip DRUPAL- prefix.
       '/^DRUPAL-/' => '',
       // 4-7 and earlier base transform
-      '/^(\d)-(\d)--(\d+)-(\d+)/' => '\1.\2.x-\3.\4',
+      '/^(\d)-(\d)--(\d+)-(\d+)$/' => '\1.\2.x-\3.\4',
+      // Aggressively normalize post-version strings for 4-7 and earlier
+      '/^(\d)-(\d)--(\d+)-(\d+)(-)?([A-Za-z]+)(-)?(\d+)?$/' => '\1.\2.x-\3.\4-\6\8',
       // 5 and later base transform
-      '/^(\d)--(\d+)-(\d+)/' => '\1.x-\2.\3',
+      '/^(\d)--(\d+)-(\d+)$/' => '\1.x-\2.\3',
+      // Aggressively normalize post-version strings for 5 and later
+      '/^(\d)--(\d+)-(\d+)(-)?([A-Za-z]+)(-)?(\d+)?$/' => '\1.x-\2.\3-\5\7',
+      // And now lowercase all possible extra strings
+      '/UNSTABLE/' => 'unstable',
+      '/ALPHA/' => 'alpha',
+      '/BETA/' => 'beta',
+      '/RC/' => 'rc',
     ),
-    'tagmatch' => '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/',
+    'tagmatch' => '/^DRUPAL-\d(-\d)?--\d+-\d+((-)?(\w+)(-)?(\d+)?)?$/',
   ),
 );
 
