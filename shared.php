@@ -323,7 +323,7 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
     // No branches to work with, bail out.
     if (array_search('master', $all_branches) !== FALSE) {
       // Project has only a master branch
-      git_log("Project has no conforming branches.", 'INFO', $project);
+      git_log("Project has no conforming branches apart from master.", 'INFO', $project);
     }
     else {
       // No non-labelled branches at all. This shouldn't happen; dump the whole list if it does.
