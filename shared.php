@@ -408,8 +408,6 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
 
   $tag_list = array_combine($tags, $new_tags);
   foreach ($tag_list as $old_tag => $new_tag) {
-    // Lowercase all remaining characters (should be just ALPHA/BETA/RC, etc.)
-    $tag_list[$old_tag] = $new_tag = strtolower($new_tag);
     // Add the new tag.
     try {
       git_invoke("git tag -f $new_tag $old_tag", FALSE, $destination_dir);
