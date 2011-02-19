@@ -1,4 +1,4 @@
-$Id
+# Test cases for keyword stripping for the Drupal Git migration.
 
 # First, the standard version
 // $Id$
