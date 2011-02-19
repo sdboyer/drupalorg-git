@@ -19,6 +19,22 @@ require_once dirname(__FILE__) . '/shared.php';
 
 global $rename_patterns;
 
+// Get the repomgr queue up and ready
+drupal_queue_include();
+$queue = DrupalQueue::get('versioncontrol_repomgr');
+
+// Retrieve list of nids for which we cannot safely do master renames
+$result = db_query("SELECT prn.nid
+	FROM {project_release_nodes} AS prn
+	INNER JOIN {versioncontrol_project_projects} AS vpp ON vpp.nid = prn.pid
+	INNER JOIN {versioncontrol_labels} AS vl ON vpp.repo_id = vl.repo_id AND SUBSTRING_INDEX(prn.version, '-dev', 1) = vl.name
+	WHERE prn.tag = 'master' and prn.version != 'master'");
+
+$no_master_transform = array();
+while ($row = db_fetch_object($result)) {
+  $no_master_transform[] = $row->nid;
+}
+
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
 // Ensure no stale data.
 db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
@@ -31,56 +47,108 @@ while ($row = db_fetch_object($result)) {
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
-    update_release($repo, $release_data, $row->nid == 3060 ? $rename_patterns['core'] : $rename_patterns['contrib'], $insert);
+    $patterns = $row->nid == 3060 ? $rename_patterns['core'] : $rename_patterns['contrib'];
+
+    if ($release_data->branch == 1 || $release_data->tag == 'HEAD') { // HEAD doesn't get an entry in {cvs_tags} as a branch.
+      /*
+       * Special-case HEAD. There are ~3275 release nodes pointing to HEAD.
+       *
+       * There are three ways we handle releases tied to HEAD:
+       *
+       *  1. When the release version is also HEAD, we just transform both to
+       *     master and call it done. There are ~820 release nodes like this which
+       *     are basically all defunct, as the HEAD/HEAD pattern hasn't been
+       *     allowed for years.
+       *
+       *  2. When the release version is something other than HEAD, we derive the
+       *     appropriate branch name from that version string, rename the branch
+       *     accordingly in git and update the release node - iff a branch does
+       *     not already exist with that name. There are ~2000 release nodes
+       *     without a conflict that get this rename.
+       *
+       *  3. If there IS a conflict discovered in the logic in #2, we just leave
+       *     the release node & git branch as-is, and leave it up to the
+       *     maintainer to resolve the problem on their own.
+       */
+      if ($release_data->tag == 'HEAD') {
+        // Case 1 first, do a straight transform
+        if ($release_data->version == 'HEAD') {
+          $release_data->version = 'master';
+          $transformed = 'master';
+        }
+        // Now case 2, the one we actually like!
+        else if (!in_array($release_data->nid, $no_master_transform)) {
+          $transform = substr($release_data->version, 0, -4); // pop -dev off the end
+          $arr = $repo->loadBranches(array(), array('name' => 'master'));
+          $vc_branch = reset($arr);
+          $vc_branch->name = $transform;
+          $vc_branch->save();
+          $job = array(
+            'repository' => $repo,
+            'operation' => array(
+              'passthru' => "branch -m {$release_data->version} $transform",
+            ),
+          );
+
+          if ($queue->createItem($job)) {
+            git_log("Successfully enqueued master branch namechange job.", 'INFO', $repo->name);
+          }
+          else {
+            git_log("Failed to enqueue master branch namechange job.", 'WARN', $repo->name);
+          }
+        }
+        // Conflicting branch name, so just change HEAD -> master in the tag
+        else {
+          $transformed = 'master';
+        }
+      }
+      else {
+        // The strtolower is probably redundant now, but oh well
+        $transformed = strtolower(preg_replace(array_keys($patterns['branches']), array_values($patterns['branches']), $release_data->tag));
+      }
+
+      git_log("Transformed CVS branch '$release_data->tag' into git branch '$transformed'", 'INFO', $repo->name);
+
+      $labels = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
+      $label = reset($labels);
+    }
+    else {
+      if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
+        if ($release_data->status) {
+          git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern - major problem, this MUST be addressed.", 'WARN', $repo->name);
+          return;
+        }
+        else {
+          git_log("Unpublished release tag '$release_data->tag' did not match the acceptable tag pattern. Annoying, but not critical.", 'NORMAL', $repo->name);
+          return;
+        }
+      }
+      $transformed = strtolower(preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag));
+      git_log("Transformed CVS tag '$release_data->tag' into git tag '$transformed'", 'INFO', $repo->name);
+
+      $labels = $repo->loadTags(array(), array('name' => $transformed), array('may cache' => FALSE));
+      $label = reset($labels);
+    }
+
+    if (empty($label) || empty($label->label_id)) {
+      // No label could be found - big problem.
+      git_log("No label found in repository '$repo->name' with name '$transformed'. Major problem.", 'WARN', $repo->name);
+      return;
+    }
+
+    // Update project release node listings
+    db_query("UPDATE {project_release_nodes} SET tag = '%s', version = '%s' WHERE nid = %d", array($label->name, $release_data->version, $release_data->nid));
+
+    $values = array(
+      'release_nid' => $release_data->nid,
+      'label_id' => $label->label_id,
+      'project_nid' => $release_data->pid,
+    );
+
+    git_log("Enqueuing the following release data for insertion into {versioncontrol_release_labels}:\n" . print_r($values, TRUE), 'INFO', $repo->name);
+
+    $insert->values($values);
   }
   // Insert data into versioncontrol_release_labels, the equivalent to cvs_tags.
   $insert->execute();
-}
-
-function update_release(VersioncontrolGitRepository $repo, $release_data, $patterns, $insert) {
-  if ($release_data->branch == 1 || $release_data->tag == 'HEAD') { // HEAD doesn't get an entry in {cvs_tags} as a branch.
-    // Special-case HEAD.
-    if ($release_data->tag == 'HEAD') {
-      // TODO note that if/when we do #994244, this'll get a little more complicated.
-      $transformed = 'master';
-      if ($release_data->version == 'HEAD') {
-        $release_data->version = 'master';
-      }
-    }
-    else {
-      $transformed = strtolower(preg_replace(array_keys($patterns['branches']), array_values($patterns['branches']), $release_data->tag));
-    }
-    git_log("Transformed CVS branch '$release_data->tag' into git branch '$transformed'", 'INFO', $repo->name);
-    $labels = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
-    $label = reset($labels);
-  }
-  else {
-    if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
-      git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern - major problem, this MUST be addressed.", 'WARN', $repo->name);
-      return;
-    }
-    $transformed = strtolower(preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag));
-    git_log("Transformed CVS tag '$release_data->tag' into git tag '$transformed'", 'INFO', $repo->name);
-    $labels = $repo->loadTags(array(), array('name' => $transformed), array('may cache' => FALSE));
-    $label = reset($labels);
-  }
-
-  if (empty($label) || empty($label->label_id)) {
-    // No label could be found - big problem.
-    git_log("No label found in repository '$repo->name' with name '$transformed'. Major problem.", 'WARN', $repo->name);
-    return;
-  }
-
-  // Update project release node listings
-  db_query("UPDATE {project_release_nodes} SET tag = '%s', version = '%s' WHERE nid = %d", array($label->name, $release_data->version, $release_data->nid));
-
-  $values = array(
-    'release_nid' => $release_data->nid,
-    'label_id' => $label->label_id,
-    'project_nid' => $release_data->pid,
-  );
-
-  git_log("Enqueuing the following release data for insertion into {versioncontrol_release_labels}:\n" . print_r($values, TRUE), 'INFO', $repo->name);
-
-  $insert->values($values);
 }
