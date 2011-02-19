@@ -125,9 +125,9 @@ foreach ($projects as $project) {
     $job = array(
       'repository' => $repo,
       'operation' => array(
-        // We need to properly init the hooks now, after the translation & keyword
-        // stripping commits have been pushed in.
-        'reInit' => array(array('hooks')),
+        // We need to properly init the hooks now and the config file, after the
+        // translation & keyword stripping commits have been pushed in.
+        'reInit' => array(array('hooks', 'config')),
       ),
     );
   }
