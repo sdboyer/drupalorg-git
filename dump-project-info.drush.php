@@ -26,3 +26,13 @@ function _tggm_exception_sandbox($row) {
   // The 'sandbox' catchall project would cause us to import ALL sandboxes. No freakin way.
   return FALSE;
 }
+
+function _tggm_exception_hostmaster($row) {
+  // hostmaster is being cloned in instead
+  return FALSE;
+}
+
+function _tggm_exception_provision($row) {
+  // provision is being cloned in instead
+  return FALSE;
+}

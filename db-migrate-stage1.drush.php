@@ -56,6 +56,17 @@ $auth_data = array(
 // ensure vc_project's table is empty for a nice, clean insert
 db_delete('versioncontrol_project_projects')->execute();
 
+
+// A set of repos to assemble via cloning instead
+$cloners = array(
+  851266 => 'git://github.com/sdboyer/drupalorg-git.git', // tggm, woot!
+  196005 => 'git://git.aegirproject.org/provision.git', // aegir, provision
+  195997 => 'git://git.aegirproject.org/hostmaster.git', // aegir, hostmaster
+);
+
+$git_basedir = variable_get('drupalorg_git_basedir', '/var/git');
+$templatedir = "$git_basedir/templates/built/project";
+
 $repos = array();
 foreach ($projects as $project) {
   if (empty($project->nid)) {
@@ -63,7 +74,8 @@ foreach ($projects as $project) {
     continue;
   }
 
-  if (!is_dir('/var/git/repositories/project/' . $project->uri . '.git') && empty($empties[$project->nid])) {
+
+  if (!is_dir('/var/git/repositories/project/' . $project->uri . '.git') && empty($empties[$project->nid]) && empty($cloners[$project->nid])) {
     git_log(strtr('Project has a CVS path listed, but no code was migrated into a git repository at the expected target location, !location.', array('!project' => $project->uri, '!location' => 'project/' . $project->uri . '.git')), 'WARN', $project->uri);
     continue;
   }
@@ -94,18 +106,14 @@ foreach ($projects as $project) {
       ->condition('c.nid', $project->nid)
       ->execute();
 
-  if ($project->nid == 851266) {
-    // Hehehe...do a special case for tggm, just to be showy :)
-    $git_basedir = variable_get('drupalorg_git_basedir', '/var/git');
-    $templatedir = "$git_basedir/templates/built/project";
+  if (isset($cloners[$project->nid])) {
     $tgt_dir = "$git_basedir/repositories/project/$project->uri.git";
 
     $job = array(
       'repository' => $repo,
       'operation' => array(
-        // Clone the migration repo from github and set the launch branch as default. woot!
         'passthru' => array(
-          'clone -b launch --bare --template ' . $templatedir . ' git://github.com/sdboyer/drupalorg-git.git ' . $tgt_dir,
+          "clone --bare --template $templatedir {$cloners[$project->nid]} $tgt_dir",
         ),
       ),
     );
