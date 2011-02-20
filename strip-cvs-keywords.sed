@@ -1,22 +1,25 @@
-#!/usr/bin/env sed -Ef
+#!/usr/bin/env sed -f
 
 # Should be run like this:
-# sed -Ei '' -f strip-cvs-keywords.sed strip-cvs-keywords.test.txt
+# sed -i '' -f strip-cvs-id-keywords.sed strip-cvs-id-keywords.test.txt
+# BSD sed needs the -E flag for all these rules to work. Not required on
+# GNU sed.
 
-# Tag on a line by itself, preceeded by one or more spaces/comment characters.
-/^ *[\/\*#;{-].*\$[Ii][Dd].*\$/ d
+# Keyword on a line by itself, preceeded by one or more spaces/comment characters.
+/^ *[\/\*#;{-].*\$[Ii][Dd]: .*,v [1-9][0-9\.]* 20[0-9][0-9].*\$/ d
+/^ *[\/\*#;{-].*\$[Ii][Dd]\$/ d
 # Invalid (unterminated) version of the above.
 /^ *[\/\*#;{-].*\$[Ii][Dd]:? *$/ d
 
-# Tag on a line by itself, preceeded by nothing or whitespace.
-/^ *\$[Ii][Dd]:.*\$/ d
+# Keyword on a line by itself, preceeded by nothing or whitespace.
+/^ *\$[Ii][Dd]: .*,v [1-9][0-9\.]* 20[0-9][0-9].*\$/ d
 /^ *\$[Ii][Dd]\$/ d
 # Invalid (unterminated) version of the above.
 /^ *\$[Ii][Dd]:? *$/ d
 
-# Tag preceeded by the PHP tag.
+# Keyword preceeded by the PHP keyword.
 s/^ *<\?(php)* [\/\*#].*\$[Ii][Dd].*\$/<?php/g
 
-# Tag inside XML/HTML comment.
+# Keyword inside XML/HTML comment.
 /^ *<!---* *\$[Ii][Dd].*\$/ d
 
