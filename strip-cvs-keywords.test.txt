@@ -1,4 +1,4 @@
-$Id
+# Test cases for keyword stripping for the Drupal Git migration.
 
 # First, the standard version
 // $Id$
@@ -40,8 +40,14 @@ $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
 $Id$
   $Id$
 
-# Potential error – PHP variables starting with id;
-  $id_test = $testing123; # This should stay in place.
+# Potential error - PHP variables starting with id;
+# These should stay in place.
+  $id_test = $testing123;
+  $id = $class->pcid;
+  $id = 'test';
+    ->condition('{' . $opt_table . "}.$id", $id_value)
+    ->condition($id, $id_value)
+    ->condition($id, $form_state['values']['id'])
 
 # Info-file style ID keyword.
 ;$Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $
@@ -53,6 +59,9 @@ $Id$
 <!-- $Id$ -->
 <!-- $Id: bloggit.module,v 1.11 2010/09/17 19:31:59 mikl Exp $ -->
 
+# Id in SQL file
+-- $Id$
+
 # Unterminated keywords
 # $Id
 // $Id:
@@ -63,6 +72,10 @@ $Id:
 {* $Id: comment.tpl,v 1.1 2007/05/13 11:28:31 yojoe Exp $ *}
 /* $Id: typography.css,v 1.1 2009/03/12 05:25:06 zinv Exp $ */
 /* $Id: theme-gallery-body.css,v 1.1 2009/07/25 01:01:22 jingjang Exp $
+
+# An edge case from core modules/block/block.tpl.php
+# Should NOT be removed.
+* - $id: Same output as $block_id but independent of any block region.
 
 # Hall of shame
 # Cases we cannot safely remove
