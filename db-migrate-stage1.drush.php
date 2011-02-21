@@ -80,6 +80,8 @@ foreach ($projects as $project) {
     continue;
   }
 
+  git_log('Building a VersioncontrolGitRepository object for the project.', 'INFO', $project->uri);
+
   $data = array(
     'name' => $project->uri,
     'root' => '/var/git/repositories/project/' . $project->uri . '.git',
@@ -93,7 +95,6 @@ foreach ($projects as $project) {
 
   // Build the repo object
   $repo = $gitbackend->buildEntity('repo', $data);
-
 
   // Save it, b/c doing it in the job could cause db deadlocks. Yay fast beanstalk!
   // Also ensure the versioncontrol_project_projects association is up to date
@@ -183,7 +184,7 @@ foreach ($projects as $project) {
       break;
   }
 
-  git_log("Enqueuing repomgr job with the following payload:\n" . print_r($job['operation']), 'DEBUG', $project->uri);
+  git_log("Enqueuing repomgr job with the following payload:\n" . print_r($job['operation'], TRUE), 'DEBUG', $project->uri);
 
   if ($queue->createItem($job)) {
     git_log("Successfully enqueued repository initialization job.", 'INFO', $repo->name);
