@@ -127,8 +127,8 @@ while ($row = db_fetch_object($result)) {
     else {
       if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
 	if (!empty($release_data->status)) {
-	  print_r($release_data);
-          git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern - major problem, this MUST be addressed.", 'WARN', $repo->name);
+          git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern.", 'QUIET', $repo->name);
+          git_log("Loaded release data from non-conforming tag '$release_data->tag':\n" . print_r($release_data, TRUE), 'DEBUG', $repo->name);
           continue;
         }
         else {
@@ -146,8 +146,8 @@ while ($row = db_fetch_object($result)) {
     if (empty($label) || empty($label->label_id)) {
       // No label could be found - big problem if the release node is published, will cause packaging errors.
       if (!empty($release_data->status)) {
-	  print_r($release_data);
-          git_log("No label found in repository '$repo->name' with name '$transformed'. Major problem.", 'WARN', $repo->name);
+          git_log("No label found in repository '$repo->name' with name '$transformed'. CRITICAL PROBLEM.", 'WARN', $repo->name);
+          git_log("Loaded release data corresponding to published released node with missing label:\n" . print_r($release_data, TRUE), 'DEBUG', $repo->name);
           continue;
         }
 	else {
