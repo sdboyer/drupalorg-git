@@ -93,8 +93,11 @@ foreach ($projects as $project) {
 
   // Build the repo object
   $repo = $gitbackend->buildEntity('repo', $data);
+
+
   // Save it, b/c doing it in the job could cause db deadlocks. Yay fast beanstalk!
   // Also ensure the versioncontrol_project_projects association is up to date
+  $repo->save();
   db_merge('versioncontrol_project_projects')
     ->key(array('nid' => $repo->project_nid))
     ->fields(array('repo_id' => $repo->repo_id))
