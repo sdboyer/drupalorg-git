@@ -47,6 +47,14 @@ while ($row = db_fetch_object($result)) {
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
+    $vars = array(
+      '%nid' => $release_data->nid,
+      '%label' => $release_data->tag,
+      '%version' => $release_data->version,
+    );
+    $msg = "Processing release node %nid, tied to label %label and given release version %version";
+    git_log(strtr($msg, $vars), 'INFO', $release_data->uri);
+
     $patterns = $row->nid == 3060 ? $rename_patterns['core'] : $rename_patterns['contrib'];
 
     if ($release_data->branch == 1 || $release_data->tag == 'HEAD') { // HEAD doesn't get an entry in {cvs_tags} as a branch.
