@@ -40,6 +40,7 @@ $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER 
 db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
 
 while ($row = db_fetch_object($result)) {
+  unset($label, $transformed);
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
 
@@ -117,8 +118,11 @@ while ($row = db_fetch_object($result)) {
 
       git_log("Transformed CVS branch '$release_data->tag' into git branch '$transformed'", 'INFO', $repo->name);
 
-      $labels = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
-      $label = reset($labels);
+      // Don't reload the label if we already have it (if we did a HEAD/master transform)
+      if (!empty($label)) {
+        $labels = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
+        $label = reset($labels);
+      }
     }
     else {
       if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
