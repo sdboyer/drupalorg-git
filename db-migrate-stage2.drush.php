@@ -28,7 +28,7 @@ $result = db_query("SELECT prn.nid
 	FROM {project_release_nodes} AS prn
 	INNER JOIN {versioncontrol_project_projects} AS vpp ON vpp.nid = prn.pid
 	INNER JOIN {versioncontrol_labels} AS vl ON vpp.repo_id = vl.repo_id AND SUBSTRING_INDEX(prn.version, '-dev', 1) = vl.name
-	WHERE prn.tag = 'master' and prn.version != 'master'");
+	WHERE prn.tag = 'HEAD' and prn.version != 'HEAD'");
 
 $no_master_transform = array();
 while ($row = db_fetch_object($result)) {
