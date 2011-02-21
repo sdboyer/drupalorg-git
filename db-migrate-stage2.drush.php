@@ -140,9 +140,16 @@ while ($row = db_fetch_object($result)) {
     }
 
     if (empty($label) || empty($label->label_id)) {
-      // No label could be found - big problem.
-      git_log("No label found in repository '$repo->name' with name '$transformed'. Major problem.", 'WARN', $repo->name);
-      continue;
+      // No label could be found - big problem if the release node is published, will cause packaging errors.
+      if (!empty($release_data->status)) {
+	  print_r($release_data);
+          git_log("No label found in repository '$repo->name' with name '$transformed'. Major problem.", 'WARN', $repo->name);
+          continue;
+        }
+	else {
+	  git_log("No label found in repository '$repo->name' with name '$transformed'. However, release node is unpublished, so just really freakin annoying.", 'QUIET', $repo->name);
+          continue;
+        }
     }
 
     // Update project release node listings
