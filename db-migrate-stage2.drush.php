@@ -86,7 +86,7 @@ while ($row = db_fetch_object($result)) {
         }
         // Now case 2, the one we actually like!
         else if (!in_array($release_data->nid, $no_master_transform)) {
-          $transform = substr($release_data->version, 0, -4); // pop -dev off the end
+          $transformed = substr($release_data->version, 0, -4); // pop -dev off the end
           $arr = $repo->loadBranches(array(), array('name' => 'master'));
           $vc_branch = reset($arr);
           $vc_branch->name = $transform;
@@ -94,12 +94,12 @@ while ($row = db_fetch_object($result)) {
           $job = array(
             'repository' => $repo,
             'operation' => array(
-              'passthru' => "branch -m {$release_data->tag} $transform",
+              'passthru' => "branch -m {$release_data->tag} $transformed",
             ),
           );
 
           if ($queue->createItem($job)) {
-            git_log("Successfully enqueued master branch namechange job.", 'INFO', $repo->name);
+            git_log("Successfully enqueued master -> $transformed branch namechange job.", 'INFO', $repo->name);
           }
           else {
             git_log("Failed to enqueue master branch namechange job.", 'WARN', $repo->name);
