@@ -43,7 +43,7 @@ while ($row = db_fetch_object($result)) {
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
 
-  $release_query = db_query('SELECT prn.pid, prn.nid, prn.version, prn.tag, prn.version_extra, ct.branch, n.status FROM {project_release_nodes} AS prn INNER JOIN {node} AS n ON prn.pid = n.nid LEFT JOIN {cvs_tags} AS ct ON prn.pid = ct.nid AND prn.tag = ct.tag WHERE prn.pid = %d', $row->nid);
+  $release_query = db_query('SELECT prn.pid, prn.nid, prn.version, prn.tag, prn.version_extra, ct.branch, n.status, p.uri FROM {project_release_nodes} AS prn INNER JOIN {project_projects} AS p ON prn.pid = p.nid INNER JOIN {node} AS n ON prn.nid = n.nid LEFT JOIN {cvs_tags} AS ct ON prn.pid = ct.nid AND prn.tag = ct.tag WHERE prn.pid = %d', $row->nid);
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
@@ -114,7 +114,8 @@ while ($row = db_fetch_object($result)) {
     }
     else {
       if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
-        if ($release_data->status) {
+	if (!empty($release_data->status)) {
+	  print_r($release_data);
           git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern - major problem, this MUST be addressed.", 'WARN', $repo->name);
           continue;
         }
@@ -145,7 +146,7 @@ while ($row = db_fetch_object($result)) {
       'project_nid' => $release_data->pid,
     );
 
-    git_log("Enqueuing the following release data for insertion into {versioncontrol_release_labels}:\n" . print_r($values, TRUE), 'INFO', $repo->name);
+    git_log("Enqueuing the following release data for insertion into {versioncontrol_release_labels}:\n" . print_r($values, TRUE), 'DEBUG', $repo->name);
 
     $insert->values($values);
   }
