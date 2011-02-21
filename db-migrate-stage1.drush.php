@@ -154,33 +154,33 @@ foreach ($projects as $project) {
   switch ($project->nid) {
     // ubercart_marketplace
     case 277418:
-      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("'rm -rf mp_tokens'") . " -- --all", TRUE);
+      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("rm -rf mp_tokens") . " -- --all", TRUE);
       break;
 
     // adaptive_context
     case 176635:
-      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("'rm -rf ac_access ac_group jqselect'") . " -- --all", TRUE);
+      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("rm -rf ac_access ac_group jqselect") . " -- --all", TRUE);
       break;
 
     // ecommerce
     case 5841:
-      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("'rm -rf contrib/inventorymangement contrib/worldpay'") . " -- --all", TRUE);
+      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("rm -rf contrib/inventorymangement contrib/worldpay") . " -- --all", TRUE);
       break;
 
     // user_board
     case 471518:
-      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("'rm -rf user_board_activity user_board_userpoints user_board_views'") . " -- --all", TRUE);
+      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("rm -rf user_board_activity user_board_userpoints user_board_views") . " -- --all", TRUE);
       break;
 
     // idthemes cluster of bullshit
     case 525938:
-      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("'rm -rf idt001 idt002 idt011 idt012'") . " -- --all", TRUE);
+      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("rm -rf idt001 idt002 idt011 idt012") . " -- --all", TRUE);
       break;
     case 525904:
     case 525938:
     case 526216:
     case 526532:
-      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("'rm -rf branches'") . " -- --all", TRUE);
+      $job['operation']['passthru'] = array("filter-branch -f --prune-empty --tree-filter " . escapeshellarg("rm -rf branches") . " -- --all", TRUE);
       break;
   }
 
