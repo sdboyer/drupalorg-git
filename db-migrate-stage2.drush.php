@@ -89,9 +89,9 @@ while ($row = db_fetch_object($result)) {
         else if (!in_array($release_data->nid, $no_master_transform)) {
           $transformed = substr($release_data->version, 0, -4); // pop -dev off the end
           $arr = $repo->loadBranches(array(), array('name' => 'master'));
-          $vc_branch = reset($arr);
-          $vc_branch->name = $transformed;
-          $vc_branch->save();
+          $label = reset($arr);
+          $label->name = $transformed;
+          $label->save();
           $job = array(
             'repository' => $repo,
             'operation' => array(
