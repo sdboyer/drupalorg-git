@@ -86,7 +86,7 @@ while ($row = db_fetch_object($result)) {
           $job = array(
             'repository' => $repo,
             'operation' => array(
-              'passthru' => "branch -m {$release_data->version} $transform",
+              'passthru' => "branch -m {$release_data->tag} $transform",
             ),
           );
 
