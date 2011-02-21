@@ -116,11 +116,11 @@ while ($row = db_fetch_object($result)) {
       if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
         if ($release_data->status) {
           git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern - major problem, this MUST be addressed.", 'WARN', $repo->name);
-          return;
+          continue;
         }
         else {
           git_log("Unpublished release tag '$release_data->tag' did not match the acceptable tag pattern. Annoying, but not critical.", 'NORMAL', $repo->name);
-          return;
+          continue;
         }
       }
       $transformed = strtolower(preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag));
@@ -133,7 +133,7 @@ while ($row = db_fetch_object($result)) {
     if (empty($label) || empty($label->label_id)) {
       // No label could be found - big problem.
       git_log("No label found in repository '$repo->name' with name '$transformed'. Major problem.", 'WARN', $repo->name);
-      return;
+      continue;
     }
 
     // Update project release node listings
