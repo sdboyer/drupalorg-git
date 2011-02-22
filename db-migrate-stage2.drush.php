@@ -40,7 +40,6 @@ $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER 
 db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
 
 while ($row = db_fetch_object($result)) {
-  unset($label, $transformed);
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
 
@@ -48,6 +47,8 @@ while ($row = db_fetch_object($result)) {
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
+    unset($label, $transformed);
+
     $vars = array(
       '%nid' => $release_data->nid,
       '%label' => $release_data->tag,
