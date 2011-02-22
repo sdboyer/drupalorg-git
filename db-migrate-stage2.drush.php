@@ -119,7 +119,7 @@ while ($row = db_fetch_object($result)) {
       git_log("Transformed CVS branch '$release_data->tag' into git branch '$transformed'", 'INFO', $repo->name);
 
       // Don't reload the label if we already have it (if we did a HEAD/master transform)
-      if (!empty($label)) {
+      if (empty($label)) {
         $labels = $repo->loadBranches(array(), array('name' => $transformed), array('may cache' => FALSE));
         $label = reset($labels);
       }
