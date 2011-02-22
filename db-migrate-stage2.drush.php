@@ -82,12 +82,14 @@ while ($row = db_fetch_object($result)) {
       if ($release_data->tag == 'HEAD') {
         // Case 1 first, do a straight transform
         if ($release_data->version == 'HEAD') {
+          git_log('TYPE 1 handling for master branch (master/master).', 'INFO', $release_data->uri);
           $release_data->version = 'master';
           $transformed = 'master';
         }
         // Now case 2, the one we actually like!
         else if (!in_array($release_data->nid, $no_master_transform)) {
           $transformed = substr($release_data->version, 0, -4); // pop -dev off the end
+          git_log(strtr('TYPE 2 handling for master branch (master/%mapto).', array('%mapto' => $transformed)), 'INFO', $release_data->uri);
           $arr = $repo->loadBranches(array(), array('name' => 'master'));
           $label = reset($arr);
           $label->name = $transformed;
@@ -108,6 +110,7 @@ while ($row = db_fetch_object($result)) {
         }
         // Conflicting branch name, so just change HEAD -> master in the tag
         else {
+          git_log(strtr('TYPE 3 handling for master branch (%mapto branch already exists).', array('%mapto' => substr($release_data->version, 0, -4))), 'INFO', $release_data->uri);
           $transformed = 'master';
         }
       }
