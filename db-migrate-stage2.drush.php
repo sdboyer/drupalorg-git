@@ -134,6 +134,10 @@ while ($row = db_fetch_object($result)) {
     }
     else {
       if (!preg_match($patterns['tagmatch'], $release_data->tag)) {
+        // Take the literal value, as passing it through a transform will strip
+        // the ^DRUPAL- out and cause erroneous errors.
+        $transformed = $release_data->tag;
+
 	if (!empty($release_data->status)) {
           git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern.", 'QUIET', $repo->name);
           git_log("Loaded release data from non-conforming tag '$release_data->tag':\n" . print_r($release_data, TRUE), 'DEBUG', $repo->name);
@@ -142,7 +146,10 @@ while ($row = db_fetch_object($result)) {
           git_log("Unpublished release tag '$release_data->tag' did not match the acceptable tag pattern. Annoying, but not critical.", 'NORMAL', $repo->name);
         }
       }
-      $transformed = strtolower(preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag));
+      else {
+        $transformed = strtolower(preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag));
+      }
+
       git_log("Transformed CVS tag '$release_data->tag' into git tag '$transformed'", 'INFO', $repo->name);
 
       $labels = $repo->loadTags(array(), array('name' => $transformed), array('may cache' => FALSE));
