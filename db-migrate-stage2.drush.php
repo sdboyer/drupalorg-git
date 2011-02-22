@@ -84,7 +84,7 @@ while ($row = db_fetch_object($result)) {
        *     appropriate branch name from that version string, rename the branch
        *     accordingly in git and update the release node - iff a branch does
        *     not already exist with that name. There are ~2000 release nodes
-       *     without a conflict that get this rename.
+       *     without a conflict that get this rename. <<<< SKIPPING THIS AT LAUNCH
        *
        *  3. If there IS a conflict discovered in the logic in #2, we just leave
        *     the release node & git branch as-is, and leave it up to the
@@ -96,32 +96,6 @@ while ($row = db_fetch_object($result)) {
           git_log('TYPE 1 handling for master branch (master/master).' . " (prn.nid = {$release_data->nid})", 'INFO', $release_data->uri);
           $release_data->version = 'master';
           $transformed = 'master';
-        }
-        // Now case 2, the one we actually like!
-        else if (!in_array($release_data->nid, $no_master_transform)) {
-          $transformed = substr($release_data->version, 0, -4); // pop -dev off the end
-          git_log(strtr('TYPE 2 handling for master branch (master/%mapto).' . " (prn.nid = {$release_data->nid})", array('%mapto' => $transformed)), 'INFO', $release_data->uri);
-          $arr = $repo->loadBranches(array(), array('name' => 'master'));
-          $label = reset($arr);
-          if (!$label instanceof VersioncontrolBranch) {
-            git_log(strtr('TYPE 2 handling *failed*, no master branch in repo!' . " (prn.nid = {$release_data->nid})", array('%mapto' => $transformed)), 'WARN', $release_data->uri);
-            continue;
-          }
-          $label->name = $transformed;
-          $label->save();
-          $job = array(
-            'repository' => $repo,
-            'operation' => array(
-              'passthru' => "branch -m master $transformed",
-            ),
-          );
-
-          if ($queue->createItem($job)) {
-            git_log("Successfully enqueued master -> $transformed branch namechange job.", 'INFO', $repo->name);
-          }
-          else {
-            git_log("Failed to enqueue master branch namechange job.", 'WARN', $repo->name);
-          }
         }
         // Conflicting branch name, so just change HEAD -> master in the tag
         else {
