@@ -39,8 +39,8 @@ $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER 
 // Ensure no stale data.
 db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
 
-$missingtags = new SplFileObject('missingtags', 'w+');
-$missingbranches = new SplFileObject('missingbranches', 'w+');
+$missingtags = new SplFileObject(dirname(__FILE__) . '/missingtags', 'w+');
+$missingbranches = new SplFileObject(dirname(__FILE__) . '/missingbranches', 'w+');
 
 while ($row = db_fetch_object($result)) {
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
