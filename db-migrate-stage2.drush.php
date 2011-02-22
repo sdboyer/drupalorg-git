@@ -90,18 +90,18 @@ while ($row = db_fetch_object($result)) {
       if ($release_data->tag == 'HEAD') {
         // Case 1 first, do a straight transform
         if ($release_data->version == 'HEAD') {
-          git_log('TYPE 1 handling for master branch (master/master).', 'INFO', $release_data->uri);
+          git_log('TYPE 1 handling for master branch (master/master).' . " (prn.nid = {$release_data->nid})", 'INFO', $release_data->uri);
           $release_data->version = 'master';
           $transformed = 'master';
         }
         // Now case 2, the one we actually like!
         else if (!in_array($release_data->nid, $no_master_transform)) {
           $transformed = substr($release_data->version, 0, -4); // pop -dev off the end
-          git_log(strtr('TYPE 2 handling for master branch (master/%mapto).', array('%mapto' => $transformed)), 'INFO', $release_data->uri);
+          git_log(strtr('TYPE 2 handling for master branch (master/%mapto).' . " (prn.nid = {$release_data->nid})", array('%mapto' => $transformed)), 'INFO', $release_data->uri);
           $arr = $repo->loadBranches(array(), array('name' => 'master'));
           $label = reset($arr);
           if (!$label instanceof VersioncontrolBranch) {
-            git_log(strtr('TYPE 2 handling *failed*, no master branch in repo! MUST ADDRESS!', array('%mapto' => $transformed)), 'WARN', $release_data->uri);
+            git_log(strtr('TYPE 2 handling *failed*, no master branch in repo!' . " (prn.nid = {$release_data->nid})", array('%mapto' => $transformed)), 'WARN', $release_data->uri);
             continue;
           }
           $label->name = $transformed;
@@ -122,7 +122,7 @@ while ($row = db_fetch_object($result)) {
         }
         // Conflicting branch name, so just change HEAD -> master in the tag
         else {
-          git_log(strtr('TYPE 3 handling for master branch (%mapto branch already exists).', array('%mapto' => substr($release_data->version, 0, -4))), 'INFO', $release_data->uri);
+          git_log(strtr('TYPE 3 handling for master branch (%mapto branch already exists).' . " (prn.nid = {$release_data->nid})", array('%mapto' => substr($release_data->version, 0, -4))), 'INFO', $release_data->uri);
           $transformed = 'master';
         }
       }
@@ -131,7 +131,7 @@ while ($row = db_fetch_object($result)) {
         $transformed = strtolower(preg_replace(array_keys($patterns['branches']), array_values($patterns['branches']), $release_data->tag));
       }
 
-      git_log("Transformed CVS branch '$release_data->tag' into git branch '$transformed'", 'INFO', $repo->name);
+      git_log("Transformed CVS branch '$release_data->tag' into git branch '$transformed'" . " (prn.nid = {$release_data->nid})", 'INFO', $repo->name);
 
       // Don't reload the label if we already have it (if we did a HEAD/master transform)
       if (empty($label)) {
@@ -146,18 +146,18 @@ while ($row = db_fetch_object($result)) {
         $transformed = $release_data->tag;
 
 	if (!empty($release_data->status)) {
-          git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern.", 'QUIET', $repo->name);
+          git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern." . " (prn.nid = {$release_data->nid})", 'QUIET', $repo->name);
           git_log("Loaded release data from non-conforming tag '$release_data->tag':\n" . print_r($release_data, TRUE), 'DEBUG', $repo->name);
         }
         else {
-          git_log("Unpublished release tag '$release_data->tag' did not match the acceptable tag pattern. Annoying, but not critical.", 'NORMAL', $repo->name);
+          git_log("Unpublished release tag '$release_data->tag' did not match the acceptable tag pattern. Annoying, but not critical." . " (prn.nid = {$release_data->nid})", 'NORMAL', $repo->name);
         }
       }
       else {
         $transformed = strtolower(preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag));
       }
 
-      git_log("Transformed CVS tag '$release_data->tag' into git tag '$transformed'", 'INFO', $repo->name);
+      git_log("Transformed CVS tag '$release_data->tag' into git tag '$transformed'" . " (prn.nid = {$release_data->nid})", 'INFO', $repo->name);
 
       $labels = $repo->loadTags(array(), array('name' => $transformed), array('may cache' => FALSE));
       $label = reset($labels);
@@ -166,12 +166,12 @@ while ($row = db_fetch_object($result)) {
     if (empty($label) || empty($label->label_id)) {
       // No label could be found - big problem if the release node is published, will cause packaging errors.
       if (!empty($release_data->status)) {
-        git_log("No label found in repository '$repo->name' with name '$transformed'. CRITICAL PROBLEM.", 'WARN', $repo->name);
+        git_log("No label found in repository '$repo->name' with name '$transformed'." . " (prn.nid = {$release_data->nid})", 'WARN', $repo->name);
         git_log("Loaded release data corresponding to published released node with missing label:\n" . print_r($release_data, TRUE), 'DEBUG', $repo->name);
         continue;
       }
       else {
-        git_log("No label found in repository '$repo->name' with name '$transformed'. However, release node is unpublished, so just really freakin annoying.", 'QUIET', $repo->name);
+        git_log("No label found in repository '$repo->name' with name '$transformed'. However, release node is unpublished, so just really freakin annoying." . " (prn.nid = {$release_data->nid})", 'QUIET', $repo->name);
         continue;
       }
     }
