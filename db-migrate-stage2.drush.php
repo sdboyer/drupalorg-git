@@ -93,6 +93,10 @@ while ($row = db_fetch_object($result)) {
           git_log(strtr('TYPE 2 handling for master branch (master/%mapto).', array('%mapto' => $transformed)), 'INFO', $release_data->uri);
           $arr = $repo->loadBranches(array(), array('name' => 'master'));
           $label = reset($arr);
+          if (!$label instanceof VersioncontrolBranch) {
+            git_log(strtr('TYPE 2 handling *failed*, no master branch in repo! MUST ADDRESS!', array('%mapto' => $transformed)), 'WARN', $release_data->uri);
+            continue;
+          }
           $label->name = $transformed;
           $label->save();
           $job = array(
