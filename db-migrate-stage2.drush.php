@@ -155,7 +155,7 @@ while ($row = db_fetch_object($result)) {
         continue;
       }
       else {
-        git_log(strtr("No %type found in repository '%name' with name '%transformed'. However, release node is unpublished, so just really freakin annoying." . " (prn.nid = {$release_data->nid})"), 'QUIET', $repo->name);
+        git_log(strtr("No %type found in repository '%name' with name '%transformed'. However, release node is unpublished, so just really freakin annoying." . " (prn.nid = {$release_data->nid})", $vars), 'QUIET', $repo->name);
         continue;
       }
     }
