@@ -43,7 +43,14 @@ while ($row = db_fetch_object($result)) {
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
 
-  $release_query = db_query('SELECT prn.pid, prn.nid, prn.version, prn.tag, prn.version_extra, ct.branch, n.status, p.uri FROM {project_release_nodes} AS prn INNER JOIN {project_projects} AS p ON prn.pid = p.nid INNER JOIN {node} AS n ON prn.nid = n.nid LEFT JOIN {cvs_tags} AS ct ON prn.pid = ct.nid AND prn.tag = ct.tag WHERE prn.pid = %d', $row->nid);
+  $query = 'SELECT prn.pid, prn.nid, prn.version, prn.tag, prn.version_extra, COALESCE(ct.branch, prn.rebuild) as branch, n.status, p.uri
+      FROM {project_release_nodes} AS prn
+      INNER JOIN {project_projects} AS p ON prn.pid = p.nid
+      INNER JOIN {node} AS n ON prn.nid = n.nid
+      LEFT JOIN {cvs_tags} AS ct ON prn.pid = ct.nid AND prn.tag = ct.tag
+      WHERE prn.pid = %d';
+
+  $release_query = db_query($query, $row->nid);
   $insert = db_insert('versioncontrol_release_labels')
     ->fields(array('release_nid', 'label_id', 'project_nid'));
   while ($release_data = db_fetch_object($release_query)) {
