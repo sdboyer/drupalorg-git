@@ -16,8 +16,20 @@
 require_once dirname(__FILE__) . '/shared.php';
 
 // Do release node conversion. Yuck.
-
 global $rename_patterns;
+
+// Unpublish all release nodes that are associated with unpublished projects
+$result = db_query('select prn.nid from project_release_nodes prn inner join node np on prn.pid = np.nid INNER JOIN node npr on prn.nid = npr.nid where np.status = 0 and npr.status = 1');
+$unpublish = array();
+while ($row = db_fetch_object($result)) {
+  $unpublish[] = $row->nid;
+}
+if (!empty($unpublish)) {
+  db_update('node')
+    ->fields(array('status' => 0))
+    ->condition('nid', $unpublish)
+    ->execute();
+}
 
 // Get the repomgr queue up and ready
 drupal_queue_include();
