@@ -129,11 +129,9 @@ while ($row = db_fetch_object($result)) {
 	if (!empty($release_data->status)) {
           git_log("Release tag '$release_data->tag' did not match the acceptable tag pattern.", 'QUIET', $repo->name);
           git_log("Loaded release data from non-conforming tag '$release_data->tag':\n" . print_r($release_data, TRUE), 'DEBUG', $repo->name);
-          continue;
         }
         else {
           git_log("Unpublished release tag '$release_data->tag' did not match the acceptable tag pattern. Annoying, but not critical.", 'NORMAL', $repo->name);
-          continue;
         }
       }
       $transformed = strtolower(preg_replace(array_keys($patterns['tags']), array_values($patterns['tags']), $release_data->tag));
