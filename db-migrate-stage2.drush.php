@@ -39,6 +39,9 @@ $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER 
 // Ensure no stale data.
 db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
 
+$missingtags = new SplFileObject('missingtags', 'w+');
+$missingbranches = new SplFileObject('missingbranches', 'w+');
+
 while ($row = db_fetch_object($result)) {
   $repos = versioncontrol_repository_load_multiple(array($row->repo_id), array(), array('may cache' => FALSE));
   $repo = reset($repos);
@@ -168,6 +171,8 @@ while ($row = db_fetch_object($result)) {
       if (!empty($release_data->status)) {
         git_log("No label found in repository '$repo->name' with name '$transformed'." . " (prn.nid = {$release_data->nid})", 'WARN', $repo->name);
         git_log("Loaded release data corresponding to published released node with missing label:\n" . print_r($release_data, TRUE), 'DEBUG', $repo->name);
+        $logger = empty($release_data->branch) ? $missingtags : $missingbranches;
+        $logger->fwrite("{$release_data->nid}\n");
         continue;
       }
       else {
