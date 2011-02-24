@@ -29,7 +29,7 @@ foreach ($empties_raw as $empty) {
 }
 unset($empties_raw);
 
-// Kill release nodes associated with projects that have repos we know to be empty.
+// Delete release nodes associated with projects that have repos we know to be empty.
 db_delete('project_release_nodes')
   ->condition('pid', array_keys($empties))
 //  ->condition('tag', 'HEAD'),
@@ -49,6 +49,12 @@ if (!empty($unpublish)) {
     ->fields(array('status' => 0))
     ->condition('nid', $unpublish)
     ->execute();
+}
+
+// Delete all release nodes that are associated with deleted projects
+$result = db_query('select prn.nid from project_release_nodes as prn left join node as n on prn.pid = n.nid where n.nid is null');
+while ($row = db_fetch_object($result)) {
+  node_delete($row->nid);
 }
 
 // Get the repomgr queue up and ready
