@@ -55,18 +55,6 @@ if (!empty($unpublish)) {
 drupal_queue_include();
 $queue = DrupalQueue::get('versioncontrol_repomgr');
 
-// Retrieve list of nids for which we cannot safely do master renames
-$result = db_query("SELECT prn.nid
-	FROM {project_release_nodes} AS prn
-	INNER JOIN {versioncontrol_project_projects} AS vpp ON vpp.nid = prn.pid
-	INNER JOIN {versioncontrol_labels} AS vl ON vpp.repo_id = vl.repo_id AND SUBSTRING_INDEX(prn.version, '-dev', 1) = vl.name
-	WHERE prn.tag = 'HEAD' and prn.version != 'HEAD'");
-
-$no_master_transform = array();
-while ($row = db_fetch_object($result)) {
-  $no_master_transform[] = $row->nid;
-}
-
 $result = db_query('SELECT p.nid, vp.repo_id FROM {project_projects} AS p INNER JOIN {versioncontrol_project_projects} AS vp ON p.nid = vp.nid');
 // Ensure no stale data.
 db_query('TRUNCATE TABLE {versioncontrol_release_labels}');
