@@ -15,6 +15,26 @@
 // Load shared functions.
 require_once dirname(__FILE__) . '/shared.php';
 
+if (!file_exists(dirname(__FILE__) . '/empties')) {
+  git_log('Empties file with empty repo data could not be found, aborting to preserve idempotence.', 'WARN');
+  exit(1);
+}
+
+// Get the info on empty repos and store it in a useful way
+$empties_raw = file(dirname(__FILE__) . '/empties');
+$empties = array();
+foreach ($empties_raw as $empty) {
+  $item = explode(',', trim($empty));
+  $empties[(int) $item[1]] = $item[0];
+}
+unset($empties_raw);
+
+// Kill release nodes associated with projects that have repos we know to be empty.
+db_delete('project_release_nodes')
+  ->condition('pid', array_keys($empties))
+//  ->condition('tag', 'HEAD'),
+  ->execute();
+
 // Do release node conversion. Yuck.
 global $rename_patterns;
 
