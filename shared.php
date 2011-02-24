@@ -391,7 +391,7 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
       git_log("Project has no tags at all.", 'NORMAL', $project);
     }
     else {
-      git_log("Project has no conforming tags, and the following nonconforming tags: " . implode(', ', $all_tags), 'WARN', $project);
+      git_log("Project has no conforming tags, and the following nonconforming tags: " . implode(', ', $all_tags), 'QUIET', $project);
     }
     return;
   }
