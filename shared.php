@@ -456,6 +456,8 @@ function cleanup_migrated_repo($project, $destination_dir, $keywords, $translati
 
   $_ENV['GIT_AUTHOR_EMAIL'] = 'tggm@no-reply.drupal.org';
   $_ENV['GIT_AUTHOR_NAME'] = 'The Great Git Migration';
+  $_ENV['GIT_COMMITTER_EMAIL'] = 'tggm@no-reply.drupal.org';
+  $_ENV['GIT_COMMITTER_NAME'] = 'The Great Git Migration';
 
   // Create a temporary directory, and register a clean up.
   $cmd = 'mktemp -dt cvs2git-import-' . escapeshellarg($project) . '.XXXXXXXXXX';
