@@ -30,10 +30,15 @@ foreach ($empties_raw as $empty) {
 unset($empties_raw);
 
 // Delete release nodes associated with projects that have repos we know to be empty.
-db_delete('project_release_nodes')
+
+$nids = db_select('project_release_nodes', 'prn')
+  ->fields('prn', array('nid'))
   ->condition('pid', array_keys($empties))
-//  ->condition('tag', 'HEAD'),
-  ->execute();
+  ->execute()->fetchAll(PDO::FETCH_COLUMN);
+
+foreach ($nids as $nid) {
+  node_delete($nid);
+}
 
 // Do release node conversion. Yuck.
 global $rename_patterns;
