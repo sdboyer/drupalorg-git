@@ -60,8 +60,6 @@ db_delete('versioncontrol_project_projects')->execute();
 // A set of repos to assemble via cloning instead
 $cloners = array(
   851266 => 'git://github.com/sdboyer/drupalorg-git.git', // tggm, woot!
-  196005 => 'git://git.aegirproject.org/export/provision', // aegir, provision
-  195997 => 'git://git.aegirproject.org/export/hostmaster', // aegir, hostmaster
 );
 
 $git_basedir = variable_get('drupalorg_git_basedir', '/var/git');
@@ -117,7 +115,7 @@ foreach ($projects as $project) {
       'repository' => $repo,
       'operation' => array(
         'passthru' => array(
-          "clone --bare --template $templatedir {$cloners[$project->nid]} $tgt_dir",
+          "clone --branch launch --bare --template $templatedir {$cloners[$project->nid]} $tgt_dir",
         ),
       ),
     );

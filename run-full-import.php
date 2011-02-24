@@ -76,7 +76,15 @@ foreach ($list as $n => $line) {
     $forks++;
   }
   else {
-    $success = import_directory($optsfile, $srcrepo, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
+    if (preg_match('/^git:/', $projectdata[0])) {
+      git_invoke("git clone --bare $projectdata[0] $destpath/project/{$projectdata[1]}.git", FALSE);
+      convert_project_branches($projectdata[1], "$destpath/project/{$projectdata[1]}.git", $rename_patterns['contrib']['branches']);
+      convert_project_tags($projectdata[1], "$destpath/project/{$projectdata[1]}.git", $rename_patterns['contrib']['tagmatch'], $rename_patterns['contrib']['tags']);
+      exit(0);
+    }
+    else {
+      $success = import_directory($optsfile, $srcrepo, ($projectdata[1] == 'drupal' ? 'drupal' : 'contributions') . $projectdata[0], "$destpath/project/{$projectdata[1]}.git", TRUE);
+    }
     exit(empty($success));
   }
   git_log("Finished import #$n\n", 'DEBUG');
