@@ -51,7 +51,7 @@ foreach ($list as $n => $line) {
   $projectdata = explode(',', $line);
 
   // Core is stupid, as always. Here's hoping this is one of the last special cases we write for it
-  if ($projectdata[1] != 'drupal') {
+  if (!in_array($projectdata[1], array('hostmaster', 'provision', 'drupal'))) {
     if (file_exists("$destpath/project/{$projectdata[1]}.git")) {
       git_log('Crap on a cracker, the target dir already exists!', 'WARN', $projectdata[1]);
       continue;
