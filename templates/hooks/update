@@ -1,0 +1,41 @@
+#! /usr/bin/php
+<?php
+
+/**
+ * git 'update' hook. Used to control acceptance of pushes to particular refs.
+ */
+
+// Load shared functionality.
+require 'hooks/shared.php';
+
+if (!$repo_data = json_decode($repo_json)) {
+  echo "Repository metadata was not found. Ref update cannot be safely accepted.\n";
+  exit(1);
+}
+$ref = $argv[1];
+$start = $argv[2];
+$end = $argv[3];
+
+$refparts = explode('/', $ref);
+if (!in_array($refparts[1], array('heads', 'tags'))) {
+  // Deny updating any ref not located in the standard branch/tag locations.
+  echo "Drupal.org only allows pushes to standard branch (refs/heads) or tag (refs/tags) locations.\n";
+  exit(2);
+}
+$is_branch = $refparts[1] == 'heads';
+
+$field = $is_branch ? 'branches' : 'tags';
+$protected = $repo_data->protected_labels->$field;
+
+if (isset($protected->{$refparts[2]})) {
+  // Disallow the deletion of branches or tags which already have associated releases.
+  if ($end == GIT_NULL_REV && $is_branch) {
+    echo "The branch '$refparts[2]' is identified as an official development branch on Drupal.org, and therefore cannot be deleted.\n";
+    exit(3);
+  }
+  if (!$is_branch) {
+    echo "The tag '$refparts[2]' is tied to a release on Drupal.org, and therefore cannot be relocated or deleted.\n";
+    exit(4);
+  }
+}
+exit(0);

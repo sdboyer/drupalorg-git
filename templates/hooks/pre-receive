@@ -1,0 +1,12 @@
+#! /usr/bin/php
+<?php
+
+// Load shared functionality.
+require 'hooks/shared.php';
+
+if (!$repo_data = json_decode($repo_json)) {
+  echo "Repository metadata was not found. Push cannot be safely accepted; rejecting all ref updates.\n";
+  exit(1);
+}
+
+exit(0);

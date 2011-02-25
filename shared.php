@@ -14,7 +14,7 @@ if (!defined('LOGLEVEL')) {
 
 if (!defined('CVS2GIT')) {
   $c2g = getenv('CVS2GIT');
-  if (is_string($level)) {
+  if (is_string($c2g)) {
     define('CVS2GIT', $c2g);
   }
   else {
@@ -34,6 +34,8 @@ $rename_patterns = array(
       '/^(\d)-(\d)$/' => '\1.\2.x',
       // And another for D5 and later
       '/^(\d)$/' => '\1.x',
+      // Plus one for the weird, weird security syntax
+      '/^(\d)-(\d+)-SECURITY$/' => '\1.x-\2-security',
     ),
     'tags' => array(
       // Strip DRUPAL- prefix.
@@ -42,6 +44,11 @@ $rename_patterns = array(
       '/^(\d)-(\d)-(\d+)/' => '\1.\2.\3',
       // 5 and later base transform
       '/^(\d)-(\d+)/' => '\1.\2',
+      // And now lowercase all possible extra strings
+      '/UNSTABLE/' => 'unstable',
+      '/ALPHA/' => 'alpha',
+      '/BETA/' => 'beta',
+      '/RC/' => 'rc',
     ),
     'tagmatch' => '/^DRUPAL-\d(-\d)?-\d+(-(\w+)(-)?(\d+)?)?$/',
   ),
@@ -55,16 +62,27 @@ $rename_patterns = array(
       '/^(\d)-(\d)--(\d+)$/' => '\1.\2.x-\3.x',
       // And another for D5 and later
       '/^(\d)--(\d+)$/' => '\1.x-\2.x',
+      // Plus one for the weird, weird security syntax
+      '/^(\d)--(\d+)-(\d+)-SECURITY$/' => '\1.x-\2.\3-security',
     ),
     'tags' => array(
       // Strip DRUPAL- prefix.
       '/^DRUPAL-/' => '',
       // 4-7 and earlier base transform
-      '/^(\d)-(\d)--(\d+)-(\d+)/' => '\1.\2.x-\3.\4',
+      '/^(\d)-(\d)--(\d+)-(\d+)$/' => '\1.\2.x-\3.\4',
+      // Aggressively normalize post-version strings for 4-7 and earlier
+      '/^(\d)-(\d)--(\d+)-(\d+)(-)?([A-Za-z]+)(-)?(\d+)?$/' => '\1.\2.x-\3.\4-\6\8',
       // 5 and later base transform
-      '/^(\d)--(\d+)-(\d+)/' => '\1.x-\2.\3',
+      '/^(\d)--(\d+)-(\d+)$/' => '\1.x-\2.\3',
+      // Aggressively normalize post-version strings for 5 and later
+      '/^(\d)--(\d+)-(\d+)(-)?([A-Za-z]+)(-)?(\d+)?$/' => '\1.x-\2.\3-\5\7',
+      // And now lowercase all possible extra strings
+      '/UNSTABLE/' => 'unstable',
+      '/ALPHA/' => 'alpha',
+      '/BETA/' => 'beta',
+      '/RC/' => 'rc',
     ),
-    'tagmatch' => '/^DRUPAL-\d(-\d)?--\d+-\d+(-(\w+)(-)?(\d+)?)?$/',
+    'tagmatch' => '/^DRUPAL-\d(-\d)?--\d+-\d+((-)?(\w+)(-)?(\d+)?)?$/',
   ),
 );
 
@@ -174,18 +192,20 @@ function git_log($message, $level = 'NORMAL', $project = NULL) {
  */
 function import_directory($config, $root, $source, $destination, $wipe = FALSE) {
   global $rename_patterns, $wd;
+  // Ensure no trailing slashes for cleanliness
+  $source = rtrim($source, '/');
   $absolute_source_dir = $root . '/' . $source;
   $elements = explode('/', $source);
   $project = array_pop($elements);
 
   // If the source is an empty directory, skip it; cvs2git barfs on these.
   if (is_empty_dir($absolute_source_dir)) {
-    git_log("Skipping empty source directory '$absolute_source_dir'.");
+    git_log("Skipping empty source directory '$absolute_source_dir'.", 'QUIET', $project);
     return FALSE;
   }
 
   if (!is_cvs_dir($absolute_source_dir)) {
-    git_log("Skipping non CVS source directory '$absolute_source_dir'.");
+    git_log("Skipping non CVS source directory '$absolute_source_dir'.", 'QUIET', $project);
     return FALSE;
   }
 
@@ -218,44 +238,44 @@ function import_directory($config, $root, $source, $destination, $wipe = FALSE) 
   file_put_contents('./cvs2git.options', strtr(file_get_contents($config), $options));
 
   // Start the import process.
-  git_log("Generating the fast-import dump files.", 'DEBUG', $source);
+  git_log("Generating the fast-import dump files.", 'DEBUG', $project);
   try {
     git_invoke(escapeshellarg(CVS2GIT) . ' --options=./cvs2git.options');
   }
   catch (Exception $e) {
-    git_log("cvs2git failed with error '$e'. Terminating import.", 'WARN', $source);
+    git_log("cvs2git failed with error '$e'. Terminating import.", 'WARN', $project);
     return FALSE;
   }
 
   // Load the data into git.
-  git_log("Importing project data into Git.", 'DEBUG', $source);
-  git_invoke('git init --template=' . dirname(__FILE__) . '/templates', FALSE, $destination);
+  git_log("Importing project data into Git.", 'DEBUG', $project);
+  git_invoke('git init', FALSE, $destination);
   try {
     git_invoke('cat tmp-cvs2git/git-blob.dat tmp-cvs2git/git-dump.dat | git fast-import --quiet', FALSE, $destination);
   }
   catch (Exception $e) {
-    git_log("Fast-import failed with error '$e'. Terminating import.", 'WARN', $source);
+    git_log("Fast-import failed with error '$e'. Terminating import.", 'WARN', $project);
     return FALSE;
   }
 
   // Do branch/tag renaming
-  git_log("Performing branch/tag renaming.", 'DEBUG', $source);
+  git_log("Performing branch/tag renaming.", 'DEBUG', $project);
   // For core
   if ($project == 'drupal' && array_search('contributions', $elements) === FALSE) { // for core
     $trans_map = $rename_patterns['core']['branches'];
-    convert_project_branches($source, $destination, $trans_map);
+    convert_project_branches($project, $destination, $trans_map);
     // Now tags.
     $trans_map = $rename_patterns['core']['tags'];
-    convert_project_tags($source, $destination, $rename_patterns['core']['tagmatch'], $trans_map);
+    convert_project_tags($project, $destination, $rename_patterns['core']['tagmatch'], $trans_map);
   }
   // For contrib, minus sandboxes
   else if ($elements[0] == 'contributions' && isset($elements[1]) && $elements[1] != 'sandbox') {
     // Branches first.
     $trans_map = $rename_patterns['contrib']['branches'];
-    convert_project_branches($source, $destination, $trans_map);
+    convert_project_branches($project, $destination, $trans_map);
     // Now tags.
     $trans_map = $rename_patterns['contrib']['tags'];
-    convert_project_tags($source, $destination, $rename_patterns['contrib']['tagmatch'], $trans_map);
+    convert_project_tags($project, $destination, $rename_patterns['contrib']['tagmatch'], $trans_map);
   }
 
   // We succeeded despite all odds!
@@ -303,7 +323,7 @@ function convert_project_branches($project, $destination_dir, $trans_map) {
     // No branches to work with, bail out.
     if (array_search('master', $all_branches) !== FALSE) {
       // Project has only a master branch
-      git_log("Project has no conforming branches.", 'INFO', $project);
+      git_log("Project has no conforming branches apart from master.", 'INFO', $project);
     }
     else {
       // No non-labelled branches at all. This shouldn't happen; dump the whole list if it does.
@@ -388,8 +408,6 @@ function convert_project_tags($project, $destination_dir, $match, $trans_map) {
 
   $tag_list = array_combine($tags, $new_tags);
   foreach ($tag_list as $old_tag => $new_tag) {
-    // Lowercase all remaining characters (should be just ALPHA/BETA/RC, etc.)
-    $tag_list[$old_tag] = $new_tag = strtolower($new_tag);
     // Add the new tag.
     try {
       git_invoke("git tag -f $new_tag $old_tag", FALSE, $destination_dir);
@@ -431,6 +449,82 @@ function verify_project_tags($project, $destination_dir, $tags) {
 
   if ($nonconforming_tags = array_diff($all_tags, $tags)) {
     git_log("Project has the following nonconforming tags: " . implode(', ', $nonconforming_tags), 'QUIET', $project);
+  }
+}
+
+function cleanup_migrated_repo($project, $destination_dir, $keywords, $translations) {
+
+  $_ENV['GIT_AUTHOR_EMAIL'] = 'tggm@no-reply.drupal.org';
+  $_ENV['GIT_AUTHOR_NAME'] = 'The Great Git Migration';
+
+  // Create a temporary directory, and register a clean up.
+  $cmd = 'mktemp -dt cvs2git-import-' . escapeshellarg($project) . '.XXXXXXXXXX';
+  $temp_dir = realpath(trim(`$cmd`));
+  register_shutdown_function('_clean_up_import', $temp_dir);
+
+  git_invoke("git clone $destination_dir $temp_dir");
+
+  try {
+    $all_branches = git_invoke("ls " . escapeshellarg("$destination_dir/refs/heads/"));
+    $all_branches = array_filter(explode("\n", $all_branches)); // array-ify & remove empties
+  }
+  catch (Exception $e) {
+    git_log("Branch list retrieval failed with error '$e'.", 'WARN', $project);
+  }
+
+  foreach($all_branches as $name) {
+    if ($name != 'master') {
+      git_invoke("git checkout -t origin/$name", FALSE, "$temp_dir/.git", $temp_dir);
+    }
+    else {
+      git_invoke("git checkout $name", FALSE, "$temp_dir/.git", $temp_dir);
+    }
+    // If needed, cleanup keywords.
+    if ($keywords) {
+      try {
+        strip_cvs_keywords($project, $temp_dir);
+      }
+      catch (exception $e) {
+        git_log("CVS tag removal for branch $name failed with error '$e'", 'WARN', $project);
+      }
+    }
+    // If needed, cleanup translations.
+    if ($translations) {
+      try {
+        kill_translations($project, $temp_dir);
+      }
+      catch (exception $e) {
+        git_log("Translation removal for branch $name failed with error '$e'", 'WARN', $project);
+      }
+    }
+  }
+
+  git_invoke('git push', FALSE, "$temp_dir/.git");
+  return TRUE;
+}
+
+function strip_cvs_keywords($project, $directory) {
+  passthru('./strip-cvs-keywords.py ' . escapeshellarg($directory));
+
+  $commit_message = escapeshellarg("Stripping CVS keywords");
+  if (git_invoke('git status --untracked-files=no -sz --', TRUE, "$directory/.git", $directory)) {
+    git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
+  }
+}
+
+function kill_translations($project, $directory) {
+  $directories = git_invoke('find ' . escapeshellarg($directory) . ' -name translations -type d');
+  $translations = array_filter(explode("\n", $directories)); // array-ify & remove empties
+  $directories = git_invoke('find ' . escapeshellarg($directory) . ' -name po -type d');
+  $po = array_filter(explode("\n", $directories)); // array-ify & remove empties
+
+  $directories = array_merge($translations, $po);
+  if (!empty($directories)) {
+    $commit_message = escapeshellarg("Removing translation directories");
+    foreach ($directories as $dir) {
+      git_invoke("git rm -r $dir", FALSE, "$directory/.git", $directory);
+    }
+    git_invoke("git commit -a -m $commit_message", FALSE, "$directory/.git", $directory);
   }
 }
 
