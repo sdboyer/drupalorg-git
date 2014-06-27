@@ -1,7 +1,7 @@
 # (Be in -*- mode: python; coding: utf-8 -*- mode.)
 #
 # ====================================================================
-# Copyright (c) 2006-2009 CollabNet.  All rights reserved.
+# Copyright (c) 2006-2010 CollabNet.  All rights reserved.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.  The terms
@@ -54,8 +54,8 @@
 #   another backslash ("\\"), or use a "raw string", as in one if the
 #   following equivalent examples:
 #
-#       ctx.sort_executable = 'c:\\windows\\system32\\sort.exe'
-#       ctx.sort_executable = r'c:\windows\system32\sort.exe'
+#       cvs_executable = 'c:\\windows\\system32\\cvs.exe'
+#       cvs_executable = r'c:\windows\system32\cvs.exe'
 #
 #   See http://docs.python.org/tutorial/introduction.html#strings for
 #   more information.
@@ -72,25 +72,21 @@
 
 
 # Import some modules that are used in setting the options:
-import re
+import os
 
 from cvs2svn_lib import config
 from cvs2svn_lib import changeset_database
 from cvs2svn_lib.common import CVSTextDecoder
-from cvs2svn_lib.log import Log
+from cvs2svn_lib.log import logger
 from cvs2svn_lib.project import Project
-from cvs2svn_lib.git_revision_recorder import GitRevisionRecorder
+from cvs2svn_lib.git_revision_collector import GitRevisionCollector
+from cvs2svn_lib.external_blob_generator import ExternalBlobGenerator
 from cvs2svn_lib.git_output_option import GitRevisionMarkWriter
 from cvs2svn_lib.git_output_option import GitOutputOption
-from cvs2svn_lib.revision_manager import NullRevisionRecorder
-from cvs2svn_lib.revision_manager import NullRevisionExcluder
-from cvs2svn_lib.fulltext_revision_recorder \
-     import SimpleFulltextRevisionRecorderAdapter
+from cvs2svn_lib.dvcs_common import KeywordHandlingPropertySetter
+from cvs2svn_lib.revision_manager import NullRevisionCollector
 from cvs2svn_lib.rcs_revision_manager import RCSRevisionReader
 from cvs2svn_lib.cvs_revision_manager import CVSRevisionReader
-from cvs2svn_lib.checkout_internal import InternalRevisionRecorder
-from cvs2svn_lib.checkout_internal import InternalRevisionExcluder
-from cvs2svn_lib.checkout_internal import InternalRevisionReader
 from cvs2svn_lib.symbol_strategy import AllBranchRule
 from cvs2svn_lib.symbol_strategy import AllTagRule
 from cvs2svn_lib.symbol_strategy import BranchIfCommitsRule
@@ -110,7 +106,6 @@ from cvs2svn_lib.symbol_transform import NormalizePathsSymbolTransform
 from cvs2svn_lib.property_setters import AutoPropsPropertySetter
 from cvs2svn_lib.property_setters import CVSBinaryFileDefaultMimeTypeSetter
 from cvs2svn_lib.property_setters import CVSBinaryFileEOLStyleSetter
-from cvs2svn_lib.property_setters import CVSRevisionNumberSetter
 from cvs2svn_lib.property_setters import DefaultEOLStyleSetter
 from cvs2svn_lib.property_setters import EOLStyleFromMimeTypeSetter
 from cvs2svn_lib.property_setters import ExecutablePropertySetter
@@ -121,53 +116,58 @@ import csv
 
 # To choose the level of logging output, uncomment one of the
 # following lines:
-Log().log_level = Log.WARN
-#Log().log_level = Log.QUIET
-#Log().log_level = Log.NORMAL
-#Log().log_level = Log.VERBOSE
-#Log().log_level = Log.DEBUG
+logger.log_level = logger.WARN
+#logger.log_level = logger.QUIET
+#logger.log_level = logger.NORMAL
+#logger.log_level = logger.VERBOSE
+#logger.log_level = logger.DEBUG
 
 
-# During CollectRevsPass, cvs2git records the contents of file
-# revisions into a "blob" file in git-fast-import format.  This option
-# configures that process:
-ctx.revision_recorder = SimpleFulltextRevisionRecorderAdapter(
-    # The following option specifies how the revision contents of the RCS
-    # files should be read.
+# The directory to use for temporary files:
+ctx.tmpdir = r'tmp-cvs2git'
+
+# During FilterSymbolsPass, cvs2git records the contents of file
+# revisions into a "blob" file in git-fast-import format.  The
+# ctx.revision_collector option configures that process.  Choose one of the two ersions and customize its options.
+
+# This first alternative is much slower but is better tested and has a
+# chance of working with CVSNT repositories.  It invokes CVS or RCS to
+# reconstuct the contents of CVS file revisions:
+ctx.revision_collector = GitRevisionCollector(
+    # The file in which to write the git-fast-import stream that
+    # contains the file revision contents:
+    './tmp-cvs2git/git-blob.dat',
+
+    # The following option specifies how the revision contents of the
+    # RCS files should be read.
     #
-    # RCSRevisionReader uses RCS's "co" program to extract the revision
-    # contents of the RCS files during CollectRevsPass.  The constructor
-    # argument specifies how to invoke the "co" executable.
+    # RCSRevisionReader uses RCS's "co" program to extract the
+    # revision contents of the RCS files during CollectRevsPass.  The
+    # constructor argument specifies how to invoke the "co"
+    # executable.
     #
     # CVSRevisionReader uses the "cvs" program to extract the revision
     # contents out of the RCS files during OutputPass.  This option is
     # considerably slower than RCSRevisionReader because "cvs" is
-    # considerably slower than "co".  However, it works in some situations
-    # where RCSRevisionReader fails; see the HTML documentation of the
-    # "--use-cvs" option for details.  The constructor argument specifies
-    # how to invoke the "co" executable.
+    # considerably slower than "co".  However, it works in some
+    # situations where RCSRevisionReader fails; see the HTML
+    # documentation of the "--use-cvs" option for details.  The
+    # constructor argument specifies how to invoke the "co"
+    # executable.
     #
     # Uncomment one of the two following lines:
     #RCSRevisionReader(co_executable=r'co'),
     CVSRevisionReader(cvs_executable=r'cvs'),
-
-    # The file in which to write the git-fast-import stream that
-    # contains the file revision contents:
-    GitRevisionRecorder('./tmp-cvs2git/git-blob.dat'),
     )
-
-# cvs2git does not need to keep track of what revisions will be
-# excluded, so leave this option unchanged:
-ctx.revision_excluder = NullRevisionExcluder()
+# This second alternative is vastly faster than the version above.  It
+# uses an external Python program to reconstruct the contents of CVS
+# file revisions:
+#ctx.revision_collector = ExternalBlobGenerator('./tmp-cvs2git/git-blob.dat')
 
 # cvs2git doesn't need a revision reader because OutputPass only
 # refers to blobs that were output during CollectRevsPass, so leave
 # this option set to None.
 ctx.revision_reader = None
-
-# Set the name (and optionally the path) of some other executables
-# required by cvs2git:
-ctx.sort_executable = r'sort'
 
 # Change the following line to True if the conversion should only
 # include the trunk of the repository (i.e., all branches and tags
@@ -220,17 +220,28 @@ ctx.initial_project_commit_message = (
 # of the revision that included the change to the vendor branch
 # (admittedly rather pointless in a cvs2git conversion).
 ctx.post_commit_message = (
-    'This commit was generated by cvs2git to track changes on a CVS '
-    'vendor branch.'
+    'This commit was generated as part of Drupal\'s Great Git '
+    'Migration to track changes on a CVS vendor branch.'
     )
 
 # Template for the commit message to be used for commits in which
-# symbols are created.  This message can use '%(symbol_type)d' to
+# symbols are created.  This message can use '%(symbol_type)s' to
 # include the type of the symbol ('branch' or 'tag') or
-# '%(symbol_name)' to include the name of the symbol.
+# '%(symbol_name)s' to include the name of the symbol.
 ctx.symbol_commit_message = (
-    "This commit was manufactured by cvs2git to create %(symbol_type)s "
-    "'%(symbol_name)s'."
+    "This commit was manufactured as part of Drupal's Great Git "
+    "Migration to create %(symbol_type)s '%(symbol_name)s'."
+    )
+
+# Template for the commit message to be used for commits in which
+# tags are pseudo-merged back to their source branch.  This message can
+# use '%(symbol_name)s' to include the name of the symbol.
+# (Not used by default unless you enable tie_tag_fixup_branches on
+# GitOutputOption.)
+ctx.tie_tag_ancestry_message = (
+    "This commit was manufactured as part of Drupal's Great Git "
+    "Migration to tie ancestry for tag '%(symbol_name)s' back to the "
+    "source branch."
     )
 
 # Some CVS clients for MacOS store resource fork data into CVS along
@@ -318,7 +329,7 @@ global_symbol_strategy_rules = [
     ExcludeTrivialImportBranchRule(),
 
     # To exclude all vendor branches (branches that had "cvs import"s
-    # on them bug no other kinds of commits), uncomment the following
+    # on them but no other kinds of commits), uncomment the following
     # line:
     #ExcludeVendorBranchRule(),
 
@@ -362,16 +373,21 @@ global_symbol_strategy_rules = [
 # translated into a git-style name by the author_transforms map.
 ctx.username = 'cvs2git'
 
-# ctx.svn_property_setters contains a list of rules used to set the
-# svn properties on files in the converted archive.  For each file,
-# the rules are tried one by one.  Any rule can add or suppress one or
-# more svn properties.  Typically the rules will not overwrite
-# properties set by a previous rule (though they are free to do so).
+# ctx.file_property_setters and ctx.revision_property_setters contain
+# rules used to set the svn properties on files in the converted
+# archive.  For each file, the rules are tried one by one.  Any rule
+# can add or suppress one or more svn properties.  Typically the rules
+# will not overwrite properties set by a previous rule (though they
+# are free to do so).  ctx.file_property_setters should be used for
+# properties that remain the same for the life of the file; these
+# should implement FilePropertySetter.  ctx.revision_property_setters
+# should be used for properties that are allowed to vary from revision
+# to revision; these should implement RevisionPropertySetter.
 #
 # Obviously, SVN properties per se are not interesting for a cvs2git
 # conversion, but some of these properties have side-effects that do
 # affect the git output.  FIXME: Document this in more detail.
-ctx.svn_property_setters.extend([
+ctx.file_property_setters.extend([
     # To read auto-props rules from a file, uncomment the following line
     # and specify a filename.  The boolean argument specifies whether
     # case should be ignored when matching filenames to the filename
@@ -381,9 +397,12 @@ ctx.svn_property_setters.extend([
     #    ignore_case=True,
     #    ),
 
-    # To read mime types from a file, uncomment the following line and
-    # specify a filename:
-    #MimeMapper(r'/etc/mime.types'),
+    # To read mime types from a file and use them to set svn:mime-type
+    # based on the filename extensions, uncomment the following line
+    # and specify a filename (see
+    # http://en.wikipedia.org/wiki/Mime.types for information about
+    # mime.types files):
+    #MimeMapper(r'/etc/mime.types', ignore_case=False),
 
     # Omit the svn:eol-style property from any files that are listed
     # as binary (i.e., mode '-kb') in CVS:
@@ -426,10 +445,13 @@ ctx.svn_property_setters.extend([
     # being executable:
     ExecutablePropertySetter(),
 
-    ])
+    # The following causes keywords to be collapsed in all text to be
+    # committed:
+    KeywordHandlingPropertySetter('collapsed'),
 
-# The directory to use for temporary files:
-ctx.tmpdir = r'tmp-cvs2git'
+    ])
+ctx.revision_property_setters.extend([
+    ])
 
 # To skip the cleanup of temporary files, uncomment the following
 # option:
@@ -478,12 +500,14 @@ ctx.retain_conflicting_attic_files = True
 # the git author to "cvsauthor <cvsauthor>".  author_transforms can be
 # used to map cvsauthor names (e.g., "jrandom") to a true name and
 # email address (e.g., "J. Random <jrandom@example.com>" for the
-# example shown).  All values should be either Unicode strings (i.e.,
-# with "u" as a prefix) or 8-bit strings in the utf-8 encoding.
-# Please substitute your own project's usernames here to use with the
-# author_transforms option of GitOutputOption below.
+# example shown).  All strings should be either Unicode strings (i.e.,
+# with "u" as a prefix) or 8-bit strings in the utf-8 encoding.  The
+# values can either be strings in the form "name <email>" or tuples
+# (name, email).  Please substitute your own project's usernames here
+# to use with the author_transforms option of GitOutputOption below.
 author_transforms = {}
-cvsReader = csv.reader(open('#CSV#', 'rb'), delimiter=',', quotechar='"', escapechar='\\')
+cvsReader = csv.reader(open('#CSV#', 'rb'),
+                       delimiter=',', quotechar='"', escapechar='\\')
 for row in cvsReader:
     # uid  ,Full Name         ,CVS name ,email
     # "102","Jonathan W. Webb","webbj74","developer@example.com"
@@ -495,20 +519,11 @@ for row in cvsReader:
 ctx.output_option = GitOutputOption(
     # The file in which to write the git-fast-import stream that
     # contains the changesets and branch/tag information:
-    'tmp-cvs2git/git-dump.dat',
+    os.path.join(ctx.tmpdir, 'git-dump.dat'),
 
     # The blobs will be written via the revision recorder, so in
     # OutputPass we only have to emit references to the blob marks:
     GitRevisionMarkWriter(),
-
-    # This option can be set to an integer to limit the number of
-    # revisions that are merged with the main parent in any commit.
-    # For git output, this can be set to None (unlimited), though due
-    # to the limitations of other tools you might want to set it to a
-    # smaller number (e.g., 16).  For Mercurial output, this should be
-    # set to 1.
-    max_merges=None,
-    #max_merges=1,
 
     # Optional map from CVS author names to git author names:
     author_transforms=author_transforms,
